@@ -1,0 +1,9 @@
+FIND_PACKAGE(Boost COMPONENTS thread)
+
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
+
+ADD_LIBRARY(qntserver STATIC
+  localserver.cpp
+)
+
+TARGET_LINK_LIBRARIES(qntserver ${Boost_LIBRARIES})
