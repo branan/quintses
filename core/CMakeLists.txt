@@ -1,3 +1,3 @@
-# ADD_LIBRARY(qntcore STATIC
-#   
-# )
+ADD_LIBRARY(qntcore STATIC
+  iface_vtable.cpp
+)

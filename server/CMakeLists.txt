@@ -6,4 +6,4 @@ ADD_LIBRARY(qntserver STATIC
   localserver.cpp
 )
 
-TARGET_LINK_LIBRARIES(qntserver ${Boost_LIBRARIES})
+TARGET_LINK_LIBRARIES(qntserver qntcore ${Boost_LIBRARIES})

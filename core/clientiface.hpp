@@ -5,6 +5,7 @@ class ServerIface;
 
 class ClientIface {
 public:
+  virtual ~ClientIface();
   virtual ServerIface* server() const =0;
 };
 

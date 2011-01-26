@@ -21,5 +21,5 @@ ADD_SUBDIRECTORY(3rdparty)
 ADD_EXECUTABLE(quintses quintses.cpp)
 ADD_EXECUTABLE(qntsrv qntsrv.cpp)
 
-TARGET_LINK_LIBRARIES(quintses qntserver qntclient)
-TARGET_LINK_LIBRARIES(qntsrv qntserver)
+TARGET_LINK_LIBRARIES(quintses qntcore qntserver qntclient)
+TARGET_LINK_LIBRARIES(qntsrv qntcore qntserver)
