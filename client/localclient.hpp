@@ -17,9 +17,12 @@ public:
 private:
   void initializePlatform();
   void finalizePlatform();
+  void platformEvents();
+  void platformSwapBuffer();
 
   ServerIface* m_server;
   PlatformData* m_platform;
+  bool m_finished;
 };
 
 #endif // QNT_CLIENT_LOCALCLIENT_H

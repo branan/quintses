@@ -1,7 +1,7 @@
 #include "localclient.hpp"
 #include "server/localserver.hpp"
 
-LocalClient::LocalClient() {
+LocalClient::LocalClient() : m_finished(false) {
   initializePlatform();
   m_server = new LocalServer();
   m_server->addClient(this);
@@ -14,7 +14,10 @@ LocalClient::~LocalClient() {
 
 
 int LocalClient::mainloop() {
-  return 0; // TODO: actually run some sort of game loop here
+  while(!m_finished) {
+    platformEvents();
+  }
+  return 0;
 }
 
 ServerIface* LocalClient::server() const {
