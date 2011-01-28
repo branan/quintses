@@ -14,6 +14,7 @@ public:
   void run();
 
   virtual void addClient(ClientIface*);
+  virtual void makeClientPrivileged(ClientIface*);
 
   virtual int waitForTermination();
 

@@ -1,14 +1,19 @@
 #include "localclient.hpp"
+#include "opengl/glloader.hpp"
 #include "server/localserver.hpp"
 
 LocalClient::LocalClient() : m_finished(false) {
   initializePlatform();
   m_server = new LocalServer();
   m_server->addClient(this);
-  // TODO: launch local threads
+  m_server->makeClientPrivileged(this);
+  m_loader = new GlLoader(m_platform);
+  // TODO: launch audio thread
 }
 
 LocalClient::~LocalClient() {
+  m_loader->finish();
+  //TODO: end audio thread
   finalizePlatform();
 }
 

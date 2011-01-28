@@ -8,6 +8,7 @@ public:
   virtual ~ServerIface();
 
   virtual void addClient(ClientIface*) =0;
+  virtual void makeClientPrivileged(ClientIface*) =0;
 
   virtual int waitForTermination() =0;
 };

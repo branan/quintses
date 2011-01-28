@@ -6,6 +6,8 @@
 // structure to hold platform-specific fields
 struct PlatformData;
 
+class LoaderIface;
+
 class LocalClient : public ClientIface {
 public:
   LocalClient();
@@ -21,6 +23,7 @@ private:
   void platformSwapBuffer();
 
   ServerIface* m_server;
+  LoaderIface* m_loader;
   PlatformData* m_platform;
   bool m_finished;
 };

@@ -7,35 +7,23 @@
 #include "localclient.hpp"
 
 namespace {
-int glx_attributes[] = {
-  GLX_DOUBLEBUFFER, 1,
-  GLX_STENCIL_SIZE, 8,
-  GLX_RENDER_TYPE, GLX_RGBA_BIT,
-  GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
-  0, 0
-};
+  const int glx_attributes[] = {
+    GLX_DOUBLEBUFFER, 1,
+    GLX_STENCIL_SIZE, 8,
+    GLX_RENDER_TYPE, GLX_RGBA_BIT,
+    GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT | GLX_PBUFFER_BIT,
+    0, 0
+  };
 
-int context_attributes[] = {
-  GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
-  GLX_CONTEXT_MINOR_VERSION_ARB, 2,
-  GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
-  GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
-  0, 0
-};
+  Atom WM_PROTOCOLS;
+  Atom WM_DELETE_WINDOW;
 
-Atom WM_PROTOCOLS;
-Atom WM_DELETE_WINDOW;
-
-Bool predicate(Display*, XEvent*, XPointer) {
-  return 1;
-}
-
+  Bool predicate(Display*, XEvent*, XPointer) {
+    return 1;
+  }
 } // namespace
 
 void LocalClient::initializePlatform() {
-  PFNGLXCREATECONTEXTATTRIBSARBPROC glXCreateContextAttribs;
-  glXCreateContextAttribs =
-    (PFNGLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddressARB((GLubyte*)"glXCreateContextAttribsARB");
 
   // TODO: get information about the window layout from a config system of some sort
   const int width = 800;
@@ -58,8 +46,8 @@ void LocalClient::initializePlatform() {
     delete m_platform;
     throw std::runtime_error("No OpenGL framebuffer configuration found");
   }
-  GLXFBConfig fbc = configs[0];
-  XVisualInfo* vi = glXGetVisualFromFBConfig(m_platform->dpy, fbc);
+  m_platform->fbc = configs[0];
+  XVisualInfo* vi = glXGetVisualFromFBConfig(m_platform->dpy, m_platform->fbc);
   if(!vi) {
     XCloseDisplay(m_platform->dpy);
     delete m_platform;
@@ -88,7 +76,7 @@ void LocalClient::initializePlatform() {
   XSetWMName(m_platform->dpy, m_platform->win, &namehint);
   Atom protocols[] = { WM_DELETE_WINDOW };
   XSetWMProtocols(m_platform->dpy, m_platform->win, protocols, 1);
-  m_platform->ctx = glXCreateContextAttribs(m_platform->dpy, fbc, 0, True, context_attributes);
+  m_platform->ctx = glXCreateNewContext(m_platform->dpy, m_platform->fbc, GLX_RGBA_TYPE, 0, True);
   if(!m_platform->ctx) {
     XDestroyWindow(m_platform->dpy, m_platform->win);
     XCloseDisplay(m_platform->dpy);

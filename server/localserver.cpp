@@ -11,6 +11,7 @@ namespace {
 LocalServer::LocalServer()
   : m_running(true)
 {
+  //TODO: add some sort of initialization lock
   ServerLauncher launcher;
   boost::thread t(launcher, this);
   // server thread is on its own at this point
@@ -29,6 +30,8 @@ void LocalServer::addClient(ClientIface* c) {
   m_clients.insert(c);
 }
 
+// TODO: privileged clients. For now any client can make any call
+void LocalServer::makeClientPrivileged(ClientIface* ) { }
 
 int LocalServer::waitForTermination() {
   boost::unique_lock<boost::mutex> lock(m_term_mutex);
