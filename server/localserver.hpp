@@ -23,8 +23,8 @@ private:
 
   // thread management members
   bool m_running;
-  boost::condition_variable m_term_cond;
-  boost::mutex m_term_mutex;
+  boost::condition_variable m_status_cond;
+  boost::mutex m_status_mutex;
   boost::shared_mutex m_clients_mutex; // read/write lock for clients list
 };
 

@@ -8,21 +8,34 @@ namespace {
   };
 }
 
-LocalServer::LocalServer()
-  : m_running(true)
-{
-  //TODO: add some sort of initialization lock
+LocalServer::LocalServer() {
+  m_running = false;
   ServerLauncher launcher;
   boost::thread t(launcher, this);
+  boost::unique_lock<boost::mutex> lock(m_status_mutex);
+  while(!m_running) {
+    m_status_cond.wait(lock);
+  }
   // server thread is on its own at this point
 }
 
 void LocalServer::run() {
   {
-    boost::lock_guard<boost::mutex> lock(m_term_mutex);
+    boost::lock_guard<boost::mutex> lock(m_status_mutex);
+    m_running = true;
+  }
+  m_status_cond.notify_all();
+
+  boost::xtime xt;
+  boost::xtime_get(&xt, boost::TIME_UTC);
+  xt.sec += 1;
+  boost::thread::sleep(xt);
+
+  {
+    boost::lock_guard<boost::mutex> lock(m_status_mutex);
     m_running = false;
   }
-  m_term_cond.notify_all();
+  m_status_cond.notify_all();
 }
 
 void LocalServer::addClient(ClientIface* c) {
@@ -34,9 +47,9 @@ void LocalServer::addClient(ClientIface* c) {
 void LocalServer::makeClientPrivileged(ClientIface* ) { }
 
 int LocalServer::waitForTermination() {
-  boost::unique_lock<boost::mutex> lock(m_term_mutex);
+  boost::unique_lock<boost::mutex> lock(m_status_mutex);
   while(m_running) {
-    m_term_cond.wait(lock);
+    m_status_cond.wait(lock);
   }
   return 0;
 }
