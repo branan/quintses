@@ -1,6 +1,7 @@
 #include "localclient.hpp"
 #include "server/localserver.hpp"
 #include "core/loaderiface.hpp"
+#include "core/messages/server/shutdownmsg.hpp"
 
 LocalClient::LocalClient() : m_finished(false) {
   initializePlatform();
@@ -22,7 +23,7 @@ int LocalClient::mainloop() {
     platformEvents();
   }
   if(m_server->isLocal()) {
-    m_server->shutdown(this);
+    m_server->pushMessage(new ServerShutdownMsg(this));
     m_server->waitForTermination();
   }
   return 0;

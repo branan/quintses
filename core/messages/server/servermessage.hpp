@@ -3,18 +3,23 @@
 
 #include <iosfwd>
 
+class ClientIface;
+
 class ServerMessage {
 public:
+  ServerMessage(ClientIface*);
   virtual ~ServerMessage();
 
   enum MessageType {
     ShutdownMessage,
-    ForceSize32 = 0xFFFFFFFF
   };
   virtual MessageType type() const =0;
+  virtual size_t size() const =0;
 
-  virtual void read(std::iostream&);
-  virtual void write(std::iostream&) const;
+  ClientIface* sender() const { return m_sender; }
+
+private:
+  ClientIface* m_sender;
 };
 
 #endif // QNT_CORE_SERVER_MESSAGES_SERVERMESSAGE_HPP

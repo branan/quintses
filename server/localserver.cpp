@@ -28,7 +28,8 @@ void LocalServer::run() {
   }
   m_status_cond.notify_all();
 
-  for(;;) {
+  bool looping = true;
+  while(looping) {
     ServerMessage* msg;
     {
       boost::mutex::scoped_lock lock(m_queue_mutex);
@@ -37,8 +38,12 @@ void LocalServer::run() {
       msg = m_msg_queue.front();
       m_msg_queue.pop_front();
     }
-    if(msg->type() == ServerMessage::ShutdownMessage)
-      break;
+    switch(msg->type()) {
+      case ServerMessage::ShutdownMessage:
+        looping = false;
+        break;
+    }
+    delete msg;
   }
 
   {
@@ -67,11 +72,6 @@ void LocalServer::pushMessage(ServerMessage* msg) {
   lock.unlock();
   if(was_empty)
     m_queue_cond.notify_one();
-}
-
-void LocalServer::shutdown(ClientIface*){
-  //TODO: Check if client is priveleged
-  pushMessage(new ServerShutdownMsg);
 }
 
 int LocalServer::waitForTermination() const {

@@ -1,5 +1,5 @@
 #include "servermessage.hpp"
 
+ServerMessage::ServerMessage(ClientIface* sender) : m_sender(sender) {}
+
 ServerMessage::~ServerMessage() {}
-void ServerMessage::read(std::iostream&) {}
-void ServerMessage::write(std::iostream&) const {}

@@ -19,7 +19,6 @@ public:
   virtual bool isLocal() const;
 
   virtual void pushMessage(ServerMessage*);
-  virtual void shutdown(ClientIface*);
 
   virtual int waitForTermination() const;
 

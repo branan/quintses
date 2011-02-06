@@ -15,7 +15,6 @@ public:
 
   // Server message interface
   virtual void pushMessage(ServerMessage*) =0;
-  virtual void shutdown(ClientIface*) =0;
 
   // General management
   virtual int waitForTermination() const =0;
