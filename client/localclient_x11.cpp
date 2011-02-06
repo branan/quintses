@@ -5,6 +5,7 @@
 #include <stdexcept>
 
 #include "localclient.hpp"
+#include "opengl/glloader.hpp"
 
 namespace {
   const int glx_attributes[] = {
@@ -88,6 +89,8 @@ void LocalClient::initializePlatform() {
 
   glClear(GL_COLOR_BUFFER_BIT);
   glXSwapBuffers(m_platform->dpy, m_platform->win);
+
+  m_loader = new GlLoader(m_platform);
 }
 
 void LocalClient::finalizePlatform() {
