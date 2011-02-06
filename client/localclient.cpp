@@ -22,6 +22,10 @@ int LocalClient::mainloop() {
   while(!m_finished) {
     platformEvents();
   }
+  if(m_server->isLocal()) {
+    m_server->shutdown();
+    m_server->waitForTermination();
+  }
   return 0;
 }
 
