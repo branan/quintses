@@ -69,8 +69,9 @@ void LocalServer::pushMessage(ServerMessage* msg) {
     m_queue_cond.notify_one();
 }
 
-void LocalServer::shutdown(){
-   pushMessage(new ServerShutdownMsg);
+void LocalServer::shutdown(ClientIface*){
+  //TODO: Check if client is priveleged
+  pushMessage(new ServerShutdownMsg);
 }
 
 int LocalServer::waitForTermination() const {

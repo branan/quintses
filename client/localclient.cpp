@@ -22,7 +22,7 @@ int LocalClient::mainloop() {
     platformEvents();
   }
   if(m_server->isLocal()) {
-    m_server->shutdown();
+    m_server->shutdown(this);
     m_server->waitForTermination();
   }
   return 0;
