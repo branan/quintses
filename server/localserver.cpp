@@ -23,7 +23,7 @@ LocalServer::LocalServer() {
 
 void LocalServer::run() {
   {
-    boost::lock_guard<boost::mutex> lock(m_status_mutex);
+    boost::mutex::scoped_lock lock(m_status_mutex);
     m_running = true;
   }
   m_status_cond.notify_all();
@@ -42,7 +42,7 @@ void LocalServer::run() {
   }
 
   {
-    boost::lock_guard<boost::mutex> lock(m_status_mutex);
+    boost::mutex::scoped_lock lock(m_status_mutex);
     m_running = false;
   }
   m_status_cond.notify_all();
