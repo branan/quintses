@@ -1,9 +1,12 @@
 FIND_PACKAGE(Boost COMPONENTS thread)
+FIND_PACKAGE(Bullet)
 
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${BULLET_INCLUDE_DIRS})
 
 ADD_LIBRARY(qntserver STATIC
   localserver.cpp
+  bullet/btphysics.cpp
 )
 
-TARGET_LINK_LIBRARIES(qntserver qntcore ${Boost_LIBRARIES})
+TARGET_LINK_LIBRARIES(qntserver qntcore ${Boost_LIBRARIES} ${BULLET_LIBRARIES})

@@ -8,6 +8,8 @@
 
 #include "core/serveriface.hpp"
 
+class PhysicsIface;
+
 class LocalServer : public ServerIface {
 public:
   LocalServer();
@@ -29,6 +31,9 @@ private:
   std::deque<ServerMessage*> m_msg_queue;
   boost::mutex m_queue_mutex;
   boost::condition_variable m_queue_cond;
+
+  // worker threads/subsystems
+  PhysicsIface* m_physics;
 
   // thread management members
   bool m_running;

@@ -1,5 +1,6 @@
 #include "localserver.hpp"
 
+#include "bullet/btphysics.hpp"
 #include "core/messages/server/shutdownmsg.hpp"
 
 namespace {
@@ -22,6 +23,7 @@ LocalServer::LocalServer() {
 }
 
 void LocalServer::run() {
+  m_physics = new BtPhysics();
   {
     boost::mutex::scoped_lock lock(m_status_mutex);
     m_running = true;
@@ -46,6 +48,7 @@ void LocalServer::run() {
     delete msg;
   }
 
+  m_physics->finish();
   {
     boost::mutex::scoped_lock lock(m_status_mutex);
     m_running = false;
