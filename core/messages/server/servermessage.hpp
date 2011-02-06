@@ -22,4 +22,4 @@ private:
   ClientIface* m_sender;
 };
 
-#endif // QNT_CORE_SERVER_MESSAGES_SERVERMESSAGE_HPP
+#endif // QNT_CORE_MESSAGES_SERVER_SERVERMESSAGE_HPP
