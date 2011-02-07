@@ -3,17 +3,19 @@
 #include "core/loaderiface.hpp"
 #include "core/messages/server/shutdownmsg.hpp"
 
+#include "openal/alaudio.hpp"
+
 LocalClient::LocalClient() : m_finished(false) {
   initializePlatform();
   m_server = new LocalServer();
   m_server->addClient(this);
   m_server->makeClientPrivileged(this);
-  // TODO: launch audio thread
+  m_audio = new AlAudio;
 }
 
 LocalClient::~LocalClient() {
-  m_loader->finish();
-  //TODO: end audio thread
+  m_audio->finish();
+  delete m_audio;
   finalizePlatform();
 }
 

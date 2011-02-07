@@ -6,6 +6,7 @@
 // structure to hold platform-specific fields
 struct PlatformData;
 
+class AudioIface;
 class LoaderIface;
 
 class LocalClient : public ClientIface {
@@ -24,6 +25,7 @@ private:
 
   ServerIface* m_server;
   LoaderIface* m_loader;
+  AudioIface* m_audio;
   PlatformData* m_platform;
   bool m_finished;
 };

@@ -94,6 +94,8 @@ void LocalClient::initializePlatform() {
 }
 
 void LocalClient::finalizePlatform() {
+  m_loader->finish();
+  delete m_loader;
   glXDestroyContext(m_platform->dpy, m_platform->ctx);
   XDestroyWindow(m_platform->dpy, m_platform->win);
   XCloseDisplay(m_platform->dpy);
