@@ -1,0 +1,1 @@
+ADD_LIBRARY(qntglew glew/glew.c)

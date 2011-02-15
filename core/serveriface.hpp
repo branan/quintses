@@ -2,7 +2,7 @@
 #define QNT_CORE_SERVERIFACE_H
 
 class ClientIface;
-class ServerMessage;
+class ServerMsg;
 
 class ServerIface {
 public:
@@ -14,7 +14,7 @@ public:
   virtual bool isLocal() const =0;
 
   // Server message interface
-  virtual void pushMessage(ServerMessage*) =0;
+  virtual void pushMessage(ServerMsg*) =0;
 
   // General management
   virtual int waitForTermination() const =0;

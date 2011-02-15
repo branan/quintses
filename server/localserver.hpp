@@ -1,12 +1,12 @@
 #ifndef QNT_SERVER_LOCALSERVER_H
 #define QNT_SERVER_LOCALSERVER_H
 
-#include <deque>
 #include <set>
 
 #include <boost/thread.hpp>
 
 #include "core/serveriface.hpp"
+#include "core/util/queue.hpp"
 
 class PhysicsIface;
 
@@ -20,7 +20,7 @@ public:
   virtual void makeClientPrivileged(ClientIface*);
   virtual bool isLocal() const;
 
-  virtual void pushMessage(ServerMessage*);
+  virtual void pushMessage(ServerMsg*);
 
   virtual int waitForTermination() const;
 
@@ -28,9 +28,7 @@ private:
   std::set<ClientIface*> m_clients;
 
   // event queue
-  std::deque<ServerMessage*> m_msg_queue;
-  boost::mutex m_queue_mutex;
-  boost::condition_variable m_queue_cond;
+  queue<ServerMsg*> m_msg_queue;
 
   // worker threads/subsystems
   PhysicsIface* m_physics;

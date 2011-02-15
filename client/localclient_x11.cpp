@@ -1,21 +1,15 @@
 #include "platformdata_x11.hpp" // included first to keep X11 headers in order
 #include <GL/glxext.h>
 #include <GL/gl.h>
+#include <GL/glu.h>
 
 #include <stdexcept>
 
 #include "localclient.hpp"
 #include "opengl/glloader.hpp"
+#include "opengl/glrender.hpp"
 
 namespace {
-  const int glx_attributes[] = {
-    GLX_DOUBLEBUFFER, 1,
-    GLX_STENCIL_SIZE, 8,
-    GLX_RENDER_TYPE, GLX_RGBA_BIT,
-    GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT | GLX_PBUFFER_BIT,
-    0, 0
-  };
-
   Atom WM_PROTOCOLS;
   Atom WM_DELETE_WINDOW;
 
@@ -47,8 +41,9 @@ void LocalClient::initializePlatform() {
     delete m_platform;
     throw std::runtime_error("No OpenGL framebuffer configuration found");
   }
-  m_platform->fbc = configs[0];
-  XVisualInfo* vi = glXGetVisualFromFBConfig(m_platform->dpy, m_platform->fbc);
+  GLXFBConfig fbc = configs[0];
+  XFree(configs);
+  XVisualInfo* vi = glXGetVisualFromFBConfig(m_platform->dpy, fbc);
   if(!vi) {
     XCloseDisplay(m_platform->dpy);
     delete m_platform;
@@ -62,6 +57,7 @@ void LocalClient::initializePlatform() {
   m_platform->win = XCreateWindow(m_platform->dpy, RootWindow(m_platform->dpy, vi->screen), 0, 0,
                                   width, height, 0, vi->depth, InputOutput, vi->visual,
                                   CWBorderPixel|CWColormap|CWEventMask, &swa);
+  XFree(vi);
   if(!m_platform->win) {
     XCloseDisplay(m_platform->dpy);
     delete m_platform;
@@ -75,27 +71,32 @@ void LocalClient::initializePlatform() {
   XTextProperty namehint;
   XStringListToTextProperty(const_cast<char**>(&name), 1, &namehint);
   XSetWMName(m_platform->dpy, m_platform->win, &namehint);
+  XFree(namehint.value);
   Atom protocols[] = { WM_DELETE_WINDOW };
   XSetWMProtocols(m_platform->dpy, m_platform->win, protocols, 1);
-  m_platform->ctx = glXCreateNewContext(m_platform->dpy, m_platform->fbc, GLX_RGBA_TYPE, 0, True);
+  m_platform->ctx = glXCreateNewContext(m_platform->dpy, fbc, GLX_RGBA_TYPE, 0, True);
   if(!m_platform->ctx) {
     XDestroyWindow(m_platform->dpy, m_platform->win);
     XCloseDisplay(m_platform->dpy);
     delete m_platform;
-    throw std::runtime_error("Could not create an OpenGL 3.2 context");
+    throw std::runtime_error("Could not create an OpenGL context");
   }
   XMapWindow(m_platform->dpy, m_platform->win);
   glXMakeContextCurrent(m_platform->dpy, m_platform->win, m_platform->win, m_platform->ctx);
 
+  glViewport(0, 0, width, height);
+  gluPerspective(60.0, 0.75, 0.1, 100.0);
   glClear(GL_COLOR_BUFFER_BIT);
   glXSwapBuffers(m_platform->dpy, m_platform->win);
 
   m_loader = new GlLoader(m_platform);
+  m_renderer = new GlRender(m_loader);
 }
 
 void LocalClient::finalizePlatform() {
   m_loader->finish();
   delete m_loader;
+  delete m_renderer;
   glXDestroyContext(m_platform->dpy, m_platform->ctx);
   XDestroyWindow(m_platform->dpy, m_platform->win);
   XCloseDisplay(m_platform->dpy);

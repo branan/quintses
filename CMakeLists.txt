@@ -12,6 +12,7 @@ ENDIF(MSVC)
 SET(BUILD_SHARED_LIBS OFF)
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty)
 
 IF(WIN32)
   SET(QNT_PLATFORM "w32")
@@ -27,5 +28,5 @@ ADD_SUBDIRECTORY(3rdparty)
 ADD_EXECUTABLE(quintses quintses.cpp)
 ADD_EXECUTABLE(qntsrv qntsrv.cpp)
 
-TARGET_LINK_LIBRARIES(quintses qntcore qntserver qntclient)
+TARGET_LINK_LIBRARIES(quintses qntcore qntserver qntclient qntglew)
 TARGET_LINK_LIBRARIES(qntsrv qntcore qntserver)

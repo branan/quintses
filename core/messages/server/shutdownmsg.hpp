@@ -1,14 +1,15 @@
 #ifndef QNT_CORE_MESSAGES_SERVER_SHUTDOWNMESSAGE_HPP
 #define QNT_CORE_MESSAGES_SERVER_SHUTDOWNMESSAGE_HPP
 
-#include "servermessage.hpp"
+#include "servermsg.hpp"
 
-class ServerShutdownMsg : public ServerMessage {
+class ServerShutdownMsg : public ServerMsg {
 public:
   ServerShutdownMsg(ClientIface*);
   virtual ~ServerShutdownMsg();
   virtual MessageType type() const;
-  virtual size_t size() const;
+  virtual void read(std::iostream&);
+  virtual void write(std::iostream&) const;
 };
 
 #endif // QNT_CORE_MESSAGES_SERVER_SHUTDOWNMESSAGE_HPP

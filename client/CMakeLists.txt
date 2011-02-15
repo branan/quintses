@@ -11,6 +11,7 @@ ADD_LIBRARY(qntclient STATIC
   openal/streamingwav.cpp
   opengl/glloader.cpp
   opengl/glloader_${QNT_PLATFORM}.cpp
+  opengl/glrender.cpp
 )
 
 TARGET_LINK_LIBRARIES(qntclient qntcore qntserver ${OPENGL_LIBRARIES} ${OPENAL_LIBRARY})

@@ -32,16 +32,10 @@ void LocalServer::run() {
 
   bool looping = true;
   while(looping) {
-    ServerMessage* msg;
-    {
-      boost::mutex::scoped_lock lock(m_queue_mutex);
-      while(m_msg_queue.empty())
-        m_queue_cond.wait(lock);
-      msg = m_msg_queue.front();
-      m_msg_queue.pop_front();
-    }
+    ServerMsg* msg;
+    msg = m_msg_queue.wait_pop();
     switch(msg->type()) {
-      case ServerMessage::ShutdownMessage:
+      case ServerMsg::ShutdownMessage:
         looping = false;
         break;
     }
@@ -49,6 +43,7 @@ void LocalServer::run() {
   }
 
   m_physics->finish();
+  delete m_physics;
   {
     boost::mutex::scoped_lock lock(m_status_mutex);
     m_running = false;
@@ -68,13 +63,8 @@ bool LocalServer::isLocal() const {
   return true;
 }
 
-void LocalServer::pushMessage(ServerMessage* msg) {
-  boost::mutex::scoped_lock lock(m_queue_mutex);
-  bool was_empty = m_msg_queue.empty();
-  m_msg_queue.push_back(msg);
-  lock.unlock();
-  if(was_empty)
-    m_queue_cond.notify_one();
+void LocalServer::pushMessage(ServerMsg* msg) {
+  m_msg_queue.push(msg);
 }
 
 int LocalServer::waitForTermination() const {

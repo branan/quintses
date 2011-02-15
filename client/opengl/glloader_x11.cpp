@@ -16,19 +16,31 @@ namespace {
 }
 
 void GlLoader::initializePlatform() {
-  m_platform->ldr_draw = glXCreatePbuffer(m_platform->dpy, m_platform->fbc, pbuffer_attributes);
+  m_platform->ldr_dpy = XOpenDisplay(0);
+  int nelements;
+  GLXFBConfig* configs = glXChooseFBConfig(m_platform->ldr_dpy, DefaultScreen(m_platform->dpy),
+                                           glx_attributes, &nelements);
+  if(0 == nelements) {
+    XCloseDisplay(m_platform->dpy);
+    delete m_platform;
+    throw std::runtime_error("No OpenGL framebuffer configuration found");
+  }
+  GLXFBConfig fbc = configs[0];
+  XFree(configs);
+  m_platform->ldr_draw = glXCreatePbuffer(m_platform->ldr_dpy, fbc, pbuffer_attributes);
   if(!m_platform->ldr_draw) {
     throw std::runtime_error("Could not create pbuffer for loader thread");
   }
-  m_platform->ldr_ctx = glXCreateNewContext(m_platform->dpy, m_platform->fbc, GLX_RGBA_TYPE, m_platform->ctx, True);
+  m_platform->ldr_ctx = glXCreateNewContext(m_platform->ldr_dpy, fbc, GLX_RGBA_TYPE, m_platform->ctx, True);
   if(!m_platform->ldr_ctx) {
-    glXDestroyPbuffer(m_platform->dpy, m_platform->ldr_draw);
+    glXDestroyPbuffer(m_platform->ldr_dpy, m_platform->ldr_draw);
     throw std::runtime_error("Could not create context for loader thread");
   }
-  glXMakeContextCurrent(m_platform->dpy, m_platform->ldr_draw, m_platform->ldr_draw, m_platform->ldr_ctx);
+  glXMakeContextCurrent(m_platform->ldr_dpy, m_platform->ldr_draw, m_platform->ldr_draw, m_platform->ldr_ctx);
 }
 
 void GlLoader::finalizePlatform() {
-  glXDestroyContext(m_platform->dpy, m_platform->ldr_ctx);
-  glXDestroyPbuffer(m_platform->dpy, m_platform->ldr_draw);
+  glXDestroyContext(m_platform->ldr_dpy, m_platform->ldr_ctx);
+  glXDestroyPbuffer(m_platform->ldr_dpy, m_platform->ldr_draw);
+  XCloseDisplay(m_platform->ldr_dpy);
 }

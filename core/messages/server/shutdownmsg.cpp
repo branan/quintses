@@ -1,12 +1,11 @@
 #include "shutdownmsg.hpp"
 
-ServerShutdownMsg::ServerShutdownMsg(ClientIface* sender): ServerMessage(sender) {}
+ServerShutdownMsg::ServerShutdownMsg(ClientIface* sender): ServerMsg(sender) {}
 ServerShutdownMsg::~ServerShutdownMsg() {}
 
-ServerMessage::MessageType ServerShutdownMsg::type() const {
-  return ServerMessage::ShutdownMessage;
+ServerMsg::MessageType ServerShutdownMsg::type() const {
+  return ServerMsg::ShutdownMessage;
 }
 
-size_t ServerShutdownMsg::size() const {
-  return sizeof(ServerShutdownMsg);
-}
+void ServerShutdownMsg::read(std::iostream&) {}
+void ServerShutdownMsg::write(std::iostream&) const {}
