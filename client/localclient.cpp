@@ -9,16 +9,16 @@
 
 LocalClient::LocalClient() : m_finished(false) {
   initializePlatform();
+  m_audio = new AlAudio;
   m_server = new LocalServer();
   m_server->addClient(this);
   m_server->makeClientPrivileged(this);
-  m_audio = new AlAudio;
 }
 
 LocalClient::~LocalClient() {
+  finalizePlatform();
   m_audio->finish();
   delete m_audio;
-  finalizePlatform();
 }
 
 
