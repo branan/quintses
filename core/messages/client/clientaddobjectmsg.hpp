@@ -5,6 +5,7 @@
 
 class ClientAddObjectMsg : public ClientMsg {
 public:
+  ClientAddObjectMsg(unsigned int id) : m_objid(id) {}
   virtual ~ClientAddObjectMsg();
   virtual void read(std::iostream&);
   virtual void write(std::iostream&) const;
@@ -14,12 +15,14 @@ public:
 
 class ClientAddDrawableMsg : public ClientAddObjectMsg {
 public:
+  ClientAddDrawableMsg(unsigned int id) : ClientAddObjectMsg(id) {}
   virtual ~ClientAddDrawableMsg();
   virtual MessageType type() const;
 };
 
 class ClientAddAudibleMsg : public ClientAddObjectMsg {
 public:
+  ClientAddAudibleMsg(unsigned int id) : ClientAddObjectMsg(id) {}
   virtual ~ClientAddAudibleMsg();
   virtual MessageType type() const;
 };
