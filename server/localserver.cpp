@@ -74,6 +74,11 @@ void LocalServer::addClient(ClientIface* c) {
   c->pushMessage(new ClientTransDrawableMsg(1, matrix));
 }
 
+void LocalServer::removeClient(ClientIface* c) {
+  boost::lock_guard<boost::shared_mutex> lock(m_clients_mutex);
+  m_clients.erase(c);
+}
+
 // TODO: privileged clients. For now any client can make any call
 void LocalServer::makeClientPrivileged(ClientIface* ) { }
 

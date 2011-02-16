@@ -19,6 +19,8 @@ public:
 
   ClientIface* sender() const { return m_sender; }
 
+  static ServerMsg *create(unsigned int, ClientIface*);
+
 private:
   ClientIface* m_sender;
 };

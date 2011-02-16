@@ -17,6 +17,7 @@ public:
   void run();
 
   virtual void addClient(ClientIface*);
+  virtual void removeClient(ClientIface*);
   virtual void makeClientPrivileged(ClientIface*);
   virtual bool isLocal() const;
 

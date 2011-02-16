@@ -10,6 +10,7 @@ public:
 
   // client management
   virtual void addClient(ClientIface*) =0;
+  virtual void removeClient(ClientIface*) =0;
   virtual void makeClientPrivileged(ClientIface*) =0;
   virtual bool isLocal() const =0;
 

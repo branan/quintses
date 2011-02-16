@@ -28,9 +28,9 @@ AlAudio::AlAudio(){
 AlAudio::~AlAudio() {}
 
 void AlAudio::run() {
-//   m_device = alcOpenDevice(0);
-//   m_context = alcCreateContext(m_device, 0);
-//   alcMakeContextCurrent(m_context);
+  m_device = alcOpenDevice(0);
+  m_context = alcCreateContext(m_device, 0);
+  alcMakeContextCurrent(m_context);
 
   {
     boost::mutex::scoped_lock lock(m_status_mutex);
@@ -39,20 +39,20 @@ void AlAudio::run() {
   m_status_cond.notify_all();
 
   while(!m_finish) {
-    for(auto i = m_streams.begin(); i != m_streams.end();) {
-      auto current = i++;
+    for(StreamSet::iterator i = m_streams.begin(); i != m_streams.end();) {
+      StreamSet::iterator current = i++;
       if(!(*current)->update()) {
         delete (*current);
         m_streams.erase(current);
       }
     }
   }
-  for(auto i = m_streams.begin(); i != m_streams.end(); ++i)
+  for(StreamSet::iterator i = m_streams.begin(); i != m_streams.end(); ++i)
     delete (*i);
 
-//   alcMakeContextCurrent(0);
-//   alcDestroyContext(m_context);
-//   alcCloseDevice(m_device);
+  alcMakeContextCurrent(0);
+  alcDestroyContext(m_context);
+  alcCloseDevice(m_device);
 
   {
     boost::mutex::scoped_lock lock(m_status_mutex);

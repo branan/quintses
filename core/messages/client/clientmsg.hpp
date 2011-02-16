@@ -16,6 +16,8 @@ public:
   virtual MessageType type() const =0;
   virtual void read(std::iostream&) =0;
   virtual void write(std::iostream&) const =0;
+
+  static ClientMsg *create(unsigned int);
 };
 
 #endif // QNT_CORE_MESSAGES_CLIENT_CLIENTMSG_HPP

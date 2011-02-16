@@ -6,7 +6,7 @@
 
 class ClientTransObjectMsg : public ClientMsg {
 public:
-  ClientTransObjectMsg(unsigned int obj, float* mat) : m_objid(obj) { memcpy(m_transform, mat, 64); }
+  ClientTransObjectMsg(unsigned int obj, float* mat) : m_objid(obj) { if(mat) memcpy(m_transform, mat, 64); }
   virtual ~ClientTransObjectMsg();
   virtual void read(std::iostream&);
   virtual void write(std::iostream&) const;
