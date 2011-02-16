@@ -1,7 +1,11 @@
 #include "localserver.hpp"
+#include "core/clientiface.hpp"
 
 #include "bullet/btphysics.hpp"
+
 #include "core/messages/server/shutdownmsg.hpp"
+#include "core/messages/client/clientaddobjectmsg.hpp"
+#include "core/messages/client/clienttransobjectmsg.hpp"
 
 namespace {
   struct ServerLauncher {
@@ -51,9 +55,23 @@ void LocalServer::run() {
   m_status_cond.notify_all();
 }
 
+float matrix[16] = {
+  1.f, 0.f, 0.f, 0.f,
+  0.f, 1.f, 0.f, 0.f,
+  0.f, 0.f, 1.f, 0.f,
+  0.f, 0.f, 0.f, 1.f
+};
 void LocalServer::addClient(ClientIface* c) {
   boost::lock_guard<boost::shared_mutex> lock(m_clients_mutex);
   m_clients.insert(c);
+  matrix[12]=-1.5f;
+  matrix[14]=-8.f;
+  c->pushMessage(new ClientAddDrawableMsg(0));
+  c->pushMessage(new ClientTransDrawableMsg(0, matrix));
+  matrix[12]=1.5f;
+  matrix[14]=-3.f;
+  c->pushMessage(new ClientAddDrawableMsg(1));
+  c->pushMessage(new ClientTransDrawableMsg(1, matrix));
 }
 
 // TODO: privileged clients. For now any client can make any call

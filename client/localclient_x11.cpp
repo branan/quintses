@@ -85,7 +85,9 @@ void LocalClient::initializePlatform() {
   glXMakeContextCurrent(m_platform->dpy, m_platform->win, m_platform->win, m_platform->ctx);
 
   glViewport(0, 0, width, height);
+  glMatrixMode(GL_PROJECTION);
   gluPerspective(60.0, 0.75, 0.1, 100.0);
+  glMatrixMode(GL_MODELVIEW);
   glClear(GL_COLOR_BUFFER_BIT);
   glXSwapBuffers(m_platform->dpy, m_platform->win);
 

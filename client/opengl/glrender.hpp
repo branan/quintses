@@ -6,7 +6,8 @@
 #include "core/renderiface.hpp"
 
 class LoaderIface;
-class GlDrawable;
+
+struct GlDrawable;
 
 class GlRender : public RenderIface {
 public:
@@ -17,7 +18,8 @@ public:
   virtual void draw() const;
 private:
   LoaderIface* m_loader;
-  std::map<unsigned int, GlDrawable*> m_drawables;
+  typedef std::map<unsigned int, GlDrawable*> DrawableMap;
+  DrawableMap m_drawables;
 };
 
 #endif // QNT_CLIENT_OPENGL_GLRENDER_HPP

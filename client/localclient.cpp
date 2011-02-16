@@ -26,6 +26,14 @@ int LocalClient::mainloop() {
   while(!m_finished) {
     ClientMsg* msg;
     while(m_msg_queue.try_pop(msg)) {
+      switch(msg->type()) {
+        case ClientMsg::AddDrawable:
+        case ClientMsg::TransDrawable:
+          m_renderer->pushMessage(msg);
+          break;
+        default:
+          break;
+      }
       delete msg;
     }
     platformEvents();
