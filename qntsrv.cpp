@@ -1,7 +1,9 @@
 #include "server/localserver.hpp"
 #include "server/remoteclient.hpp"
+#include "core/messages/server/shutdownmsg.hpp"
 
 #include <boost/asio.hpp>
+#include <signal.h>
 using boost::asio::ip::tcp;
 
 struct WatcherThread {
@@ -24,6 +26,10 @@ public:
     m_acceptor.async_accept(*m_next_client->stream().rdbuf(), boost::bind(&ListenServer::handleAccept, this, boost::asio::placeholders::error));
   }
 
+  ~ListenServer() {
+    delete m_next_client;
+  }
+
   void handleAccept(const boost::system::error_code &error) {
     if(!error) {
       m_next_client->spinup();
@@ -38,9 +44,23 @@ private:
   RemoteClient *m_next_client;
 };
 
+struct SignalHandler {
+  static void signal(int) {
+    srv->pushMessage(new ServerShutdownMsg(0));
+  }
+  static LocalServer *srv;
+};
+
+LocalServer *SignalHandler::srv;
+
 int main(int, char**) {
   boost::asio::io_service io_service;
   LocalServer *s = new LocalServer;
+  SignalHandler::srv = s;
+  signal(SIGABRT, SignalHandler::signal);
+  signal(SIGTERM, SignalHandler::signal);
+  signal(SIGINT, SignalHandler::signal);
+  signal(SIGHUP, SignalHandler::signal);
   tcp::endpoint endpoint(tcp::v4(), 55555);
   ListenServer l(io_service, endpoint, s);
   boost::thread watcher(WatcherThread(io_service, s));
