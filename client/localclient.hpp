@@ -13,7 +13,7 @@ class RenderIface;
 
 class LocalClient : public ClientIface {
 public:
-  LocalClient();
+  LocalClient(ServerIface *);
   ~LocalClient();
 
   virtual ServerIface* server() const;
