@@ -8,6 +8,8 @@ public:
   enum MessageType {
     AddDrawable,
     AddAudible,
+    TransDrawable,
+    TransAudible,
   };
 
   virtual ~ClientMsg();
