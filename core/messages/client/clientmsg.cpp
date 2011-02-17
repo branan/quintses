@@ -7,9 +7,9 @@ ClientMsg::~ClientMsg() {}
 ClientMsg* ClientMsg::create(unsigned int type) {
   switch(type) {
     case AddAudible:
-      return new ClientAddAudibleMsg(0);
+      return new ClientAddAudibleMsg(0, "");
     case AddDrawable:
-      return new ClientAddDrawableMsg(0);
+      return new ClientAddDrawableMsg(0, "");
     case TransAudible:
       return new ClientTransAudibleMsg(0,0);
     case TransDrawable:
