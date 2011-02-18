@@ -66,16 +66,18 @@ void LocalServer::addClient(ClientIface* c) {
   m_clients.insert(c);
   matrix[12]=-1.5f;
   matrix[14]=-8.f;
-  ClientAddObjectParams p;
-  p.m_template = "Triangle";
-  p.m_objid = 0;
-  c->pushMessage(new ClientAddDrawableMsg(p));
-  c->pushMessage(new ClientTransDrawableMsg(0, matrix));
+  ClientAddObjectParams ap;
+  ClientTransObjectParams tp;
+  ap.m_template = "Triangle";
+  tp.m_transform = matrix;
+  ap.m_objid = tp.m_objid = 1;
+  c->pushMessage(new ClientAddDrawableMsg(ap));
+  c->pushMessage(new ClientTransDrawableMsg(tp));
   matrix[12]=1.5f;
   matrix[14]=-3.f;
-  p.m_objid = 1;
-  c->pushMessage(new ClientAddDrawableMsg(p));
-  c->pushMessage(new ClientTransDrawableMsg(1, matrix));
+  ap.m_objid = tp.m_objid = 2;
+  c->pushMessage(new ClientAddDrawableMsg(ap));
+  c->pushMessage(new ClientTransDrawableMsg(tp));
 }
 
 void LocalServer::removeClient(ClientIface* c) {

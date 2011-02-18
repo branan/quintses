@@ -4,9 +4,17 @@
 #include "clientmsg.hpp"
 #include <string.h>
 
+struct ClientTransObjectParams {
+  unsigned int m_objid;
+  float *m_transform;
+
+  ClientTransObjectParams()
+    : m_objid(0), m_transform(0) {}
+};
+
 class ClientTransObjectMsg : public ClientMsg {
 public:
-  ClientTransObjectMsg(unsigned int obj, float* mat) : m_objid(obj) { if(mat) memcpy(m_transform, mat, 64); }
+  ClientTransObjectMsg(const ClientTransObjectParams& p) : m_objid(p.m_objid) { if(p.m_transform) memcpy(m_transform, p.m_transform, 64); }
   virtual ~ClientTransObjectMsg();
   virtual void read(std::iostream&);
   virtual void write(std::iostream&) const;
@@ -17,14 +25,14 @@ public:
 
 class ClientTransDrawableMsg : public ClientTransObjectMsg {
 public:
-  ClientTransDrawableMsg(unsigned int obj, float* mat) : ClientTransObjectMsg(obj, mat) {}
+  ClientTransDrawableMsg(const ClientTransObjectParams& p) : ClientTransObjectMsg(p) {}
   virtual ~ClientTransDrawableMsg();
   virtual MessageType type() const;
 };
 
 class ClientTransAudibleMsg : public ClientTransObjectMsg {
 public:
-  ClientTransAudibleMsg(unsigned int obj, float* mat) : ClientTransObjectMsg(obj, mat) {}
+  ClientTransAudibleMsg(const ClientTransObjectParams& p) : ClientTransObjectMsg(p) {}
   virtual ~ClientTransAudibleMsg();
   virtual MessageType type() const;
 };
