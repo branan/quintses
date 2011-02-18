@@ -66,10 +66,8 @@ void LocalServer::addClient(ClientIface* c) {
   m_clients.insert(c);
   matrix[12]=-1.5f;
   matrix[14]=-8.f;
-  ClientAddObjectParams ap;
-  ClientTransObjectParams tp;
-  ap.m_template = "Triangle";
-  tp.m_transform = matrix;
+  ClientAddObjectParams ap("Triangle");
+  ClientTransObjectParams tp(matrix);
   ap.m_objid = tp.m_objid = 1;
   c->pushMessage(new ClientAddDrawableMsg(ap));
   c->pushMessage(new ClientTransDrawableMsg(tp));

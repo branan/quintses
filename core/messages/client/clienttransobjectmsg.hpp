@@ -8,8 +8,8 @@ struct ClientTransObjectParams {
   unsigned int m_objid;
   float *m_transform;
 
-  ClientTransObjectParams()
-    : m_objid(0), m_transform(0) {}
+  ClientTransObjectParams(float *trans = 0, unsigned int id = 0)
+    : m_objid(id), m_transform(trans) {}
 };
 
 class ClientTransObjectMsg : public ClientMsg {

@@ -9,8 +9,8 @@ struct ClientAddObjectParams {
   unsigned int m_objid;
   std::string m_template;
 
-  ClientAddObjectParams()
-    : m_objid(0) {}
+  ClientAddObjectParams(const std::string& t="", unsigned int id=0)
+    : m_objid(id), m_template(t) {}
 };
 
 class ClientAddObjectMsg : public ClientMsg {
