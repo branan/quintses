@@ -1,7 +1,7 @@
 #ifndef QNT_SERVER_LOCALSERVER_H
 #define QNT_SERVER_LOCALSERVER_H
 
-#include <set>
+#include <map>
 
 #include <boost/thread.hpp>
 
@@ -26,7 +26,8 @@ public:
   virtual int waitForTermination() const;
 
 private:
-  std::set<ClientIface*> m_clients;
+  std::map<ClientIface*, uint32_t> m_clients;
+  uint32_t m_next_id; // this is the global identifier counter. Hopefully we never have more than ~4 Billion objects
 
   // event queue
   queue<ServerMsg*> m_msg_queue;
@@ -39,6 +40,8 @@ private:
   mutable boost::condition_variable m_status_cond;
   mutable boost::mutex m_status_mutex;
   boost::shared_mutex m_clients_mutex; // read/write lock for clients list
+
+  uint32_t getNextIdentifier();
 };
 
 #endif // QNT_SERVER_LOCALSERVER_H

@@ -6,6 +6,7 @@
 #include "core/messages/server/shutdownmsg.hpp"
 #include "core/messages/client/clientaddobjectmsg.hpp"
 #include "core/messages/client/clienttransobjectmsg.hpp"
+#include "core/util/atomic.hpp"
 
 namespace {
   struct ServerLauncher {
@@ -63,7 +64,8 @@ float matrix[16] = {
 };
 void LocalServer::addClient(ClientIface* c) {
   boost::lock_guard<boost::shared_mutex> lock(m_clients_mutex);
-  m_clients.insert(c);
+  uint32_t client_id = getNextIdentifier();
+  m_clients.insert(std::make_pair(c, client_id));
   matrix[12]=-1.5f;
   matrix[14]=-8.f;
   ClientAddObjectParams ap("Triangle");
@@ -100,4 +102,8 @@ int LocalServer::waitForTermination() const {
     m_status_cond.wait(lock);
   }
   return 0;
+}
+
+uint32_t LocalServer::getNextIdentifier() {
+  return fetchAndIncrement(m_next_id);
 }
