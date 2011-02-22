@@ -18,7 +18,7 @@ public:
   virtual void draw() const;
 private:
   LoaderIface* m_loader;
-  typedef std::map<unsigned int, GlDrawable*> DrawableMap;
+  typedef std::map<uint32_t, GlDrawable*> DrawableMap;
   DrawableMap m_drawables;
 };
 

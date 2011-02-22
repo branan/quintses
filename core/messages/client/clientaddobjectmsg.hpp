@@ -6,10 +6,10 @@
 #include <string>
 
 struct ClientAddObjectParams {
-  unsigned int m_objid;
+  uint32_t m_objid;
   std::string m_template;
 
-  ClientAddObjectParams(const std::string& t="", unsigned int id=0)
+  ClientAddObjectParams(const std::string& t="", uint32_t id=0)
     : m_objid(id), m_template(t) {}
 };
 
@@ -20,7 +20,7 @@ public:
   virtual void read(std::iostream&);
   virtual void write(std::iostream&) const;
 
-  unsigned int m_objid;
+  uint32_t m_objid;
   std::string m_template;
 };
 

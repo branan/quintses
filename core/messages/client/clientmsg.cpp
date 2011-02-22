@@ -4,7 +4,7 @@
 
 ClientMsg::~ClientMsg() {}
 
-ClientMsg* ClientMsg::create(unsigned int type) {
+ClientMsg* ClientMsg::create(uint32_t type) {
   switch(type) {
     case AddAudible:
       return new ClientAddAudibleMsg(ClientAddObjectParams());

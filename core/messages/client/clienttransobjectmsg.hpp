@@ -5,10 +5,10 @@
 #include <string.h>
 
 struct ClientTransObjectParams {
-  unsigned int m_objid;
+  uint32_t m_objid;
   float *m_transform;
 
-  ClientTransObjectParams(float *trans = 0, unsigned int id = 0)
+  ClientTransObjectParams(float *trans = 0, uint32_t id = 0)
     : m_objid(id), m_transform(trans) {}
 };
 
@@ -19,7 +19,7 @@ public:
   virtual void read(std::iostream&);
   virtual void write(std::iostream&) const;
 
-  unsigned int m_objid;
+  uint32_t m_objid;
   float m_transform[16];
 };
 

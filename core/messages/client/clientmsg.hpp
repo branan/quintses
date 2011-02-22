@@ -2,6 +2,7 @@
 #define QNT_CORE_MESSAGES_CLIENT_CLIENTMSG_HPP
 
 #include <iosfwd>
+#include <boost/cstdint.hpp>
 
 class ClientMsg {
 public:
@@ -17,7 +18,7 @@ public:
   virtual void read(std::iostream&) =0;
   virtual void write(std::iostream&) const =0;
 
-  static ClientMsg *create(unsigned int);
+  static ClientMsg *create(uint32_t);
 };
 
 #endif // QNT_CORE_MESSAGES_CLIENT_CLIENTMSG_HPP

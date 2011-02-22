@@ -42,7 +42,7 @@ bool RemoteServer::isLocal() const {
 }
 
 void RemoteServer::pushMessage(ServerMsg* msg) {
-  unsigned int type = msg->type();
+  uint32_t type = msg->type();
   m_stream.write((char*)&type, 4);
   msg->write(m_stream);
 }
@@ -62,7 +62,7 @@ void RemoteServer::run() {
   }
   m_status_cond.notify_all();
   while(m_stream) {
-    unsigned int type;
+    uint32_t type;
     m_stream.read((char*)&type, 4);
     ClientMsg *msg = ClientMsg::create(type);
     msg->read(m_stream);

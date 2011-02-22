@@ -23,7 +23,7 @@ ServerIface* RemoteClient::server() const {
 }
 
 void RemoteClient::pushMessage(ClientMsg* msg) {
-  unsigned int type = msg->type();
+  uint32_t type = msg->type();
   m_stream.write((char*)&type, 4);
   msg->write(m_stream);
 }
@@ -36,7 +36,7 @@ void RemoteClient::spinup() {
 void RemoteClient::run() {
   m_server->addClient(this);
   while(m_stream.good()) {
-    unsigned int type;
+    uint32_t type;
     m_stream.read((char*)&type, 4);
     // check good again, in case read failed due to disconnect
     if(m_stream.good()) {

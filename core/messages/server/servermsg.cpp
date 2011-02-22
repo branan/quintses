@@ -5,7 +5,7 @@ ServerMsg::ServerMsg(ClientIface* sender) : m_sender(sender) {}
 
 ServerMsg::~ServerMsg() {}
 
-ServerMsg* ServerMsg::create(unsigned int type, ClientIface* cli) {
+ServerMsg* ServerMsg::create(uint32_t type, ClientIface* cli) {
   switch(type) {
     case ShutdownMessage:
       return new ServerShutdownMsg(cli);

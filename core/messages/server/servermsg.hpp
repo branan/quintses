@@ -2,6 +2,7 @@
 #define QNT_CORE_MESSAGES_SERVER_SERVERMSG_HPP
 
 #include <iosfwd>
+#include <boost/cstdint.hpp>
 
 class ClientIface;
 
@@ -19,7 +20,7 @@ public:
 
   ClientIface* sender() const { return m_sender; }
 
-  static ServerMsg *create(unsigned int, ClientIface*);
+  static ServerMsg *create(uint32_t, ClientIface*);
 
 private:
   ClientIface* m_sender;

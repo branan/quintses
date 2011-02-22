@@ -2,7 +2,7 @@
 #include <string>
 
 inline std::string readString(std::iostream& stream) {
-  unsigned int len;
+  uint32_t len;
   char *blob;
   std::string result;
 
@@ -16,7 +16,7 @@ inline std::string readString(std::iostream& stream) {
 }
 
 inline void writeString(std::iostream& stream, const std::string& str) {
-  unsigned int len = str.size();
+  uint32_t len = str.size();
   stream.write((char*)&len, 4);
   stream.write(str.c_str(), len);
 }
