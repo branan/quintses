@@ -11,6 +11,8 @@ public:
     AddAudible,
     TransDrawable,
     TransAudible,
+    DelDrawable,
+    DelAudible,
   };
 
   virtual ~ClientMsg();
