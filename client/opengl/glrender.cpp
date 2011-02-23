@@ -2,6 +2,7 @@
 
 #include "glrender.hpp"
 #include "core/messages/client/clientaddobjectmsg.hpp"
+#include "core/messages/client/clientdelobjectmsg.hpp"
 #include "core/messages/client/clienttransobjectmsg.hpp"
 
 struct GlDrawable {
@@ -32,6 +33,12 @@ void GlRender::pushMessage(ClientMsg* cmsg) {
       if(i == m_drawables.end())
         return; // This object doesn't exist
       memcpy(i->second->m_matrix, msg->m_transform, 64);
+      return;
+    }
+    case ClientMsg::DelDrawable: {
+      ClientDelObjectMsg* msg = static_cast<ClientDelObjectMsg*>(cmsg);
+      m_drawables.erase(msg->m_objid);
+      return;
     }
     default:
       return;
@@ -39,6 +46,7 @@ void GlRender::pushMessage(ClientMsg* cmsg) {
 }
 
 void GlRender::draw() const {
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   for(DrawableMap::const_iterator i = m_drawables.begin(); i != m_drawables.end(); ++i) {
     glLoadMatrixf(i->second->m_matrix);
     glBegin(GL_TRIANGLES);

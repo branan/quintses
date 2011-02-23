@@ -26,6 +26,7 @@ void RemoteClient::pushMessage(ClientMsg* msg) {
   uint32_t type = msg->type();
   m_stream.write((char*)&type, 4);
   msg->write(m_stream);
+  m_stream.flush();
   delete msg;
 }
 

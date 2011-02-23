@@ -27,6 +27,7 @@ int LocalClient::mainloop() {
       switch(msg->type()) {
         case ClientMsg::AddDrawable:
         case ClientMsg::TransDrawable:
+        case ClientMsg::DelDrawable:
           m_renderer->pushMessage(msg);
           break;
         default:

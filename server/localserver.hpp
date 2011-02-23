@@ -26,7 +26,11 @@ public:
   virtual int waitForTermination() const;
 
 private:
+  struct matrix {
+    float mat[16];
+  };
   std::map<ClientIface*, uint32_t> m_clients;
+  std::map<uint32_t, matrix> m_matrices;
   uint32_t m_next_id; // this is the global identifier counter. Hopefully we never have more than ~4 Billion objects
 
   // event queue
