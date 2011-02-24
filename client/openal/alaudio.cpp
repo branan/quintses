@@ -39,15 +39,15 @@ void AlAudio::run() {
   m_status_cond.notify_all();
 
   while(!m_finish) {
-    for(StreamSet::iterator i = m_streams.begin(); i != m_streams.end();) {
-      StreamSet::iterator current = i++;
+    for(auto i = m_streams.begin(); i != m_streams.end();) {
+      auto current = i++;
       if(!(*current)->update()) {
         delete (*current);
         m_streams.erase(current);
       }
     }
   }
-  for(StreamSet::iterator i = m_streams.begin(); i != m_streams.end(); ++i)
+  for(auto i = m_streams.begin(); i != m_streams.end(); ++i)
     delete (*i);
 
   alcMakeContextCurrent(0);

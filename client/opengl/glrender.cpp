@@ -14,7 +14,7 @@ GlRender::GlRender(LoaderIface* ldr) : m_loader(ldr) {
 }
 
 GlRender::~GlRender() {
-  for(DrawableMap::const_iterator i = m_drawables.begin(); i != m_drawables.end(); ++i)
+  for(auto i = m_drawables.begin(); i != m_drawables.end(); ++i)
     delete i->second;
 }
 
@@ -29,7 +29,7 @@ void GlRender::pushMessage(ClientMsg* cmsg) {
     }
     case ClientMsg::TransDrawable: {
       ClientTransObjectMsg* msg = static_cast<ClientTransObjectMsg*>(cmsg);
-      DrawableMap::iterator i = m_drawables.find(msg->m_objid);
+      auto i = m_drawables.find(msg->m_objid);
       if(i == m_drawables.end())
         return; // This object doesn't exist
       memcpy(i->second->m_matrix, msg->m_transform, 64);
@@ -47,7 +47,7 @@ void GlRender::pushMessage(ClientMsg* cmsg) {
 
 void GlRender::draw() const {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  for(DrawableMap::const_iterator i = m_drawables.begin(); i != m_drawables.end(); ++i) {
+  for(auto i = m_drawables.begin(); i != m_drawables.end(); ++i) {
     glLoadMatrixf(i->second->m_matrix);
     glBegin(GL_TRIANGLES);
     glVertex3f(0.f, 1.f, 0.f);

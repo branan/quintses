@@ -18,8 +18,7 @@ public:
   virtual void draw() const;
 private:
   LoaderIface* m_loader;
-  typedef std::map<uint32_t, GlDrawable*> DrawableMap;
-  DrawableMap m_drawables;
+  std::map<uint32_t, GlDrawable*> m_drawables;
 };
 
 #endif // QNT_CLIENT_OPENGL_GLRENDER_HPP

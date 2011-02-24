@@ -5,6 +5,8 @@
 
 #include <stdexcept>
 
+#include "core/serveriface.hpp"
+#include "core/messages/server/inputmsg.hpp"
 #include "localclient.hpp"
 #include "opengl/glloader.hpp"
 #include "opengl/glrender.hpp"
@@ -109,9 +111,19 @@ void LocalClient::platformSwapBuffer() {
   glXSwapBuffers(m_platform->dpy, m_platform->win);
 }
 
+namespace {
+  uint16_t keymap = 0;
+  bool key_press;
+  void adjustKeysym(uint16_t key) {
+    key_press ? keymap |= key
+          : keymap &= ~key;
+  }
+}
 void LocalClient::platformEvents() {
   XEvent xevt;
-  if(XCheckIfEvent(m_platform->dpy, &xevt, predicate, 0)) {
+  bool keys_changed = false;
+  key_press = true;
+  while(XCheckIfEvent(m_platform->dpy, &xevt, predicate, 0)) {
     switch(xevt.type) {
       case ClientMessage:
         if(xevt.xclient.message_type == WM_PROTOCOLS &&
@@ -119,8 +131,29 @@ void LocalClient::platformEvents() {
           m_finished = true;
         }
         break;
+      case KeyRelease:
+        key_press = false;
+      case KeyPress:
+        switch(XKeycodeToKeysym(m_platform->dpy, xevt.xkey.keycode, 0)) {
+          case XK_Left:
+            adjustKeysym(ServerInputMsg::StrafeLeft);
+            keys_changed = true;
+            break;
+          case XK_Right:
+            adjustKeysym(ServerInputMsg::StrafeRight);
+            keys_changed = true;
+            break;
+          default:
+            break;
+        }
+        break;
       default:
         break;
     }
+  }
+  if(keys_changed) {
+    ServerInputMsg *imsg = new ServerInputMsg(this);
+    imsg->m_state = keymap;
+    m_server->pushMessage(imsg);
   }
 }

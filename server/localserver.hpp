@@ -25,12 +25,15 @@ public:
 
   virtual int waitForTermination() const;
 
+  // non-virtual functions used by other server components
+  inline uint32_t getClientId(ClientIface* cli) { boost::shared_lock<boost::shared_mutex> lock(m_clients_mutex); return m_clients[cli].m_objid; }
+
 private:
-  struct matrix {
-    float mat[16];
+  struct ClientInfo {
+    float m_matrix[16];
+    uint32_t m_objid;
   };
-  std::map<ClientIface*, uint32_t> m_clients;
-  std::map<uint32_t, matrix> m_matrices;
+  std::map<ClientIface*, ClientInfo> m_clients;
   uint32_t m_next_id; // this is the global identifier counter. Hopefully we never have more than ~4 Billion objects
 
   // event queue

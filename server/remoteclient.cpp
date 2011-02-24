@@ -44,6 +44,7 @@ void RemoteClient::run() {
     if(m_stream.good()) {
       ServerMsg *msg = ServerMsg::create(type, this);
       msg->read(m_stream);
+      msg->m_sender = this;
       m_server->pushMessage(msg);
     }
   }

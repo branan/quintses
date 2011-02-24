@@ -3,6 +3,7 @@
 
 #include "bullet/btphysics.hpp"
 
+#include "core/messages/server/inputmsg.hpp"
 #include "core/messages/server/shutdownmsg.hpp"
 #include "core/messages/client/clientaddobjectmsg.hpp"
 #include "core/messages/client/clientdelobjectmsg.hpp"
@@ -29,7 +30,7 @@ LocalServer::LocalServer() : m_next_id(1) {
 }
 
 void LocalServer::run() {
-  m_physics = new BtPhysics();
+  m_physics = new BtPhysics(this);
   {
     boost::mutex::scoped_lock lock(m_status_mutex);
     m_running = true;
@@ -43,9 +44,15 @@ void LocalServer::run() {
     switch(msg->type()) {
       case ServerMsg::ShutdownMessage:
         looping = false;
+        delete msg;
+        break;
+      case ServerMsg::InputMessage:
+        m_physics->pushMessage(msg);
+        break;
+      default:
+        delete msg;
         break;
     }
-    delete msg;
   }
 
   m_physics->finish();
@@ -61,43 +68,37 @@ float default_matrix[16] = {
   1.f, 0.f, 0.f, 0.f,
   0.f, 1.f, 0.f, 0.f,
   0.f, 0.f, 1.f, 0.f,
-  0.f, 0.f, 0.f, 1.f
+  0.f, 0.f, -8.f, 1.f
 };
 void LocalServer::addClient(ClientIface* c) {
   boost::lock_guard<boost::shared_mutex> lock(m_clients_mutex);
-  uint32_t client_id = getNextIdentifier();
-  matrix m;
-  memcpy(m.mat, default_matrix, 64);
-  m.mat[12]=-4.f + 2.f * client_id;
-  m.mat[14]=-8.f;
+  ClientInfo ci;
+  ci.m_objid = getNextIdentifier();
+  memcpy(ci.m_matrix, default_matrix, 64);
 
-  // send the new client all the existing objects
-  ClientAddObjectParams ap("Player");
-  ClientTransObjectParams tp;
-  for(std::map<uint32_t, matrix>::iterator i = m_matrices.begin(); i != m_matrices.end(); ++i) {
-    tp.m_transform = i->second.mat;
-    ap.m_objid = tp.m_objid = i->first;
-    c->pushMessage(new ClientAddDrawableMsg(ap));
-    c->pushMessage(new ClientTransDrawableMsg(tp));
+  // Synchronize player drawables across all clients
+  ClientAddObjectParams ap_new("Player", ci.m_objid);
+  ClientTransObjectParams tp_new(ci.m_matrix, ci.m_objid);
+  c->pushMessage(new ClientAddDrawableMsg(ap_new));
+  c->pushMessage(new ClientTransDrawableMsg(tp_new));
+  for(auto i = m_clients.begin(); i != m_clients.end(); ++i) {
+    ClientAddObjectParams ap_old("Player", i->second.m_objid);
+    ClientTransObjectParams tp_old(i->second.m_matrix, i->second.m_objid);
+    c->pushMessage(new ClientAddDrawableMsg(ap_old));
+    c->pushMessage(new ClientTransDrawableMsg(tp_old));
+    i->first->pushMessage(new ClientAddDrawableMsg(ap_new));
+    i->first->pushMessage(new ClientTransDrawableMsg(tp_new));
   }
-  m_matrices.insert(std::make_pair(client_id, m));
-  m_clients.insert(std::make_pair(c, client_id));
-
-  // send every client (including the new one) the new object
-  tp.m_transform = m.mat;
-  for(std::map<ClientIface*, uint32_t>::iterator i = m_clients.begin(); i != m_clients.end(); ++i) {
-    ap.m_objid = tp.m_objid = client_id;
-    i->first->pushMessage(new ClientAddDrawableMsg(ap));
-    i->first->pushMessage(new ClientTransDrawableMsg(tp));
-  }
+  m_clients.insert(std::make_pair(c, ci));
+  m_physics->addPlayerPhysical(ci.m_objid);
 }
 
 void LocalServer::removeClient(ClientIface* c) {
   boost::lock_guard<boost::shared_mutex> lock(m_clients_mutex);
-  uint32_t client_id = m_clients[c];
+  uint32_t client_id = m_clients[c].m_objid;
   m_clients.erase(c);
-  m_matrices.erase(client_id);
-  for(std::map<ClientIface*, uint32_t>::iterator i = m_clients.begin(); i != m_clients.end(); ++i) {
+  m_physics->delPlayerPhysical(client_id);
+  for(auto i = m_clients.begin(); i != m_clients.end(); ++i) {
     i->first->pushMessage(new ClientDelDrawableMsg(client_id));
   }
 }

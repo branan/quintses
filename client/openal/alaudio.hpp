@@ -32,8 +32,7 @@ private:
   ALCdevice_struct* m_device;
   ALCcontext_struct* m_context;
 
-  typedef std::set<StreamingFile*> StreamSet;
-  StreamSet m_streams;
+  std::set<StreamingFile*> m_streams;
 };
 
 #endif // QNT_CLIENT_OPENAL_ALAUDIO_HPP
