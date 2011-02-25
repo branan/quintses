@@ -37,6 +37,7 @@ void LocalServer::run() {
   }
   m_status_cond.notify_all();
 
+  m_physics->addPhysical(getNextIdentifier(), "Floor");
   bool looping = true;
   while(looping) {
     ServerMsg* msg;
@@ -64,40 +65,30 @@ void LocalServer::run() {
   m_status_cond.notify_all();
 }
 
-float default_matrix[16] = {
-  1.f, 0.f, 0.f, 0.f,
-  0.f, 1.f, 0.f, 0.f,
-  0.f, 0.f, 1.f, 0.f,
-  0.f, 0.f, -8.f, 1.f
-};
 void LocalServer::addClient(ClientIface* c) {
   boost::lock_guard<boost::shared_mutex> lock(m_clients_mutex);
   ClientInfo ci;
   ci.m_objid = getNextIdentifier();
-  memcpy(ci.m_matrix, default_matrix, 64);
 
-  // Synchronize player drawables across all clients
+  // Add player drawables to all clients
+  // locations will be synched on next physics tick
   ClientAddObjectParams ap_new("Player", ci.m_objid);
-  ClientTransObjectParams tp_new(ci.m_matrix, ci.m_objid);
   c->pushMessage(new ClientAddDrawableMsg(ap_new));
-  c->pushMessage(new ClientTransDrawableMsg(tp_new));
   for(auto i = m_clients.begin(); i != m_clients.end(); ++i) {
     ClientAddObjectParams ap_old("Player", i->second.m_objid);
-    ClientTransObjectParams tp_old(i->second.m_matrix, i->second.m_objid);
     c->pushMessage(new ClientAddDrawableMsg(ap_old));
-    c->pushMessage(new ClientTransDrawableMsg(tp_old));
     i->first->pushMessage(new ClientAddDrawableMsg(ap_new));
-    i->first->pushMessage(new ClientTransDrawableMsg(tp_new));
   }
   m_clients.insert(std::make_pair(c, ci));
-  m_physics->addPlayerPhysical(ci.m_objid);
+  m_physics->addCharacter(ci.m_objid, "Player");
 }
 
 void LocalServer::removeClient(ClientIface* c) {
   boost::lock_guard<boost::shared_mutex> lock(m_clients_mutex);
   uint32_t client_id = m_clients[c].m_objid;
   m_clients.erase(c);
-  m_physics->delPlayerPhysical(client_id);
+  m_physics->delCharacter
+(client_id);
   for(auto i = m_clients.begin(); i != m_clients.end(); ++i) {
     i->first->pushMessage(new ClientDelDrawableMsg(client_id));
   }
@@ -120,6 +111,18 @@ int LocalServer::waitForTermination() const {
     m_status_cond.wait(lock);
   }
   return 0;
+}
+
+void LocalServer::pushClientTransforms(LocalServer::ClientTransList& trans) {
+  boost::lock_guard<boost::shared_mutex> lock(m_clients_mutex);
+  for(auto i = trans.begin(); i != trans.end(); ++i) {
+    ClientTransObjectParams tp;
+    tp.m_transform = i->second;
+    tp.m_objid = i->first;
+    for(auto j = m_clients.begin(); j != m_clients.end(); ++j)
+      j->first->pushMessage(new ClientTransDrawableMsg(tp));
+    delete[] i->second;
+  }
 }
 
 uint32_t LocalServer::getNextIdentifier() {

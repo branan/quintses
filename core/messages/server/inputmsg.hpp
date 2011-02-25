@@ -8,6 +8,10 @@ public:
   enum State {
     StrafeLeft  = 1 << 0,
     StrafeRight = 1 << 1,
+    WalkForward = 1 << 2,
+    WalkReverse = 1 << 3,
+    TurnLeft = 1 << 4,
+    TurnRight = 1 << 5
   };
   ServerInputMsg(ClientIface* cli) : ServerMsg(cli) {}
   virtual ~ServerInputMsg();

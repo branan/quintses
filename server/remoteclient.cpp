@@ -5,6 +5,8 @@
 #include "core/messages/server/servermsg.hpp"
 #include "core/serveriface.hpp"
 
+#include <iostream>
+
 namespace {
   struct ClientLauncher {
     void operator()(RemoteClient* c) {
@@ -43,9 +45,13 @@ void RemoteClient::run() {
     // check good again, in case read failed due to disconnect
     if(m_stream.good()) {
       ServerMsg *msg = ServerMsg::create(type, this);
-      msg->read(m_stream);
-      msg->m_sender = this;
-      m_server->pushMessage(msg);
+      if(msg) {
+        msg->read(m_stream);
+        msg->m_sender = this;
+        m_server->pushMessage(msg);
+      } else {
+        std::cerr << "QntServer: received unknown mesage of type <" << type << ">\n";
+      }
     }
   }
   m_server->removeClient(this);

@@ -11,7 +11,8 @@ public:
   enum MessageType {
     ShutdownMessage,
     InputMessage,
-    SubsystemInternalStart, // must be last
+    SubsystemInternalStart,
+    SubsystemInternalEnd = SubsystemInternalStart + 0x200, // gives us 512 possible internal messages for each subsystem.
   };
 
   ServerMsg(ClientIface*);

@@ -2,6 +2,7 @@
 #define QNT_SERVER_LOCALSERVER_H
 
 #include <map>
+#include <vector>
 
 #include <boost/thread.hpp>
 
@@ -25,12 +26,12 @@ public:
 
   virtual int waitForTermination() const;
 
-  // non-virtual functions used by other server components
+  typedef std::vector<std::pair<uint32_t,float*> > ClientTransList;
   inline uint32_t getClientId(ClientIface* cli) { boost::shared_lock<boost::shared_mutex> lock(m_clients_mutex); return m_clients[cli].m_objid; }
+  void pushClientTransforms(ClientTransList&);
 
 private:
   struct ClientInfo {
-    float m_matrix[16];
     uint32_t m_objid;
   };
   std::map<ClientIface*, ClientInfo> m_clients;

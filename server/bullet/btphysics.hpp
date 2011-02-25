@@ -7,16 +7,19 @@
 #include "core/util/queue.hpp"
 
 #include <map>
+#include <stdint.h>
 
 class btBroadphaseInterface;
 class btCollisionDispatcher;
 class btDefaultCollisionConfiguration;
 class btDiscreteDynamicsWorld;
+class btGhostPairCallback;
 class btSequentialImpulseConstraintSolver;
 
 class LocalServer;
 
 struct PhysicsObject;
+struct CharacterObject;
 
 class BtPhysics : public PhysicsIface {
 public:
@@ -26,12 +29,18 @@ public:
   virtual void pushMessage(ServerMsg*);
   virtual void finish();
 
-  virtual void addPlayerPhysical(uint32_t);
-  virtual void delPlayerPhysical(uint32_t);
+  virtual void addCharacter(uint32_t, const std::string&);
+  virtual void addPhysical(uint32_t, const std::string&);
+  virtual void delCharacter(uint32_t);
+  virtual void delPhysical(uint32_t);
 
   void run();
 private:
+  void parseMessage(ServerMsg*);
+  void updateCharacterObjects();
+
   std::map<uint32_t, PhysicsObject*> m_objects;
+  std::map<uint32_t, CharacterObject*> m_characters;
   queue<ServerMsg*> m_msg_queue;
   LocalServer* m_server;
 
@@ -42,6 +51,7 @@ private:
   
   // bullet world classes
   btBroadphaseInterface* m_broadphase;
+  btGhostPairCallback* m_gpcallback;
   btCollisionDispatcher* m_dispatcher;
   btDefaultCollisionConfiguration* m_collision_config;
   btDiscreteDynamicsWorld* m_world;

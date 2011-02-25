@@ -55,7 +55,7 @@ void LocalClient::initializePlatform() {
   swa.colormap = XCreateColormap(m_platform->dpy, RootWindow(m_platform->dpy, vi->screen),
                                  vi->visual, AllocNone);
   swa.border_pixel = 0;
-  swa.event_mask = StructureNotifyMask;
+  swa.event_mask = StructureNotifyMask | KeyPressMask | KeyReleaseMask;
   m_platform->win = XCreateWindow(m_platform->dpy, RootWindow(m_platform->dpy, vi->screen), 0, 0,
                                   width, height, 0, vi->depth, InputOutput, vi->visual,
                                   CWBorderPixel|CWColormap|CWEventMask, &swa);
@@ -122,7 +122,6 @@ namespace {
 void LocalClient::platformEvents() {
   XEvent xevt;
   bool keys_changed = false;
-  key_press = true;
   while(XCheckIfEvent(m_platform->dpy, &xevt, predicate, 0)) {
     switch(xevt.type) {
       case ClientMessage:
@@ -133,7 +132,10 @@ void LocalClient::platformEvents() {
         break;
       case KeyRelease:
         key_press = false;
+        goto ProcessKey;
       case KeyPress:
+        key_press = true;
+      ProcessKey:        
         switch(XKeycodeToKeysym(m_platform->dpy, xevt.xkey.keycode, 0)) {
           case XK_Left:
             adjustKeysym(ServerInputMsg::StrafeLeft);

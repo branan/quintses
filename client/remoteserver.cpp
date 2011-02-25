@@ -1,9 +1,11 @@
 #include "remoteserver.hpp"
 #include "core/messages/server/servermsg.hpp"
 #include "core/messages/client/clientmsg.hpp"
+#include "core/clientiface.hpp"
 
 #include <boost/foreach.hpp>
-#include <core/clientiface.hpp>
+
+#include <iostream>
 
 namespace {
   struct ServerLauncher {
@@ -64,12 +66,18 @@ void RemoteServer::run() {
   while(m_stream) {
     uint32_t type;
     m_stream.read((char*)&type, 4);
-    ClientMsg *msg = ClientMsg::create(type);
-    msg->read(m_stream);
-    if(m_client)
-      m_client->pushMessage(msg);
-    else
-      delete msg;
+    if(m_stream.good()) {
+      ClientMsg *msg = ClientMsg::create(type);
+      if(msg) {
+        msg->read(m_stream);
+        if(m_client)
+          m_client->pushMessage(msg);
+        else
+          delete msg;
+      } else {
+        std::cerr << "QntClient: received unknown message of type <" << type << ">\n";
+      }
+    }
   }
   {
     boost::mutex::scoped_lock lock(m_status_mutex);
