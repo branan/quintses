@@ -18,6 +18,7 @@ public:
 
   virtual ServerIface* server() const;
   virtual void pushMessage(ClientMsg*);
+  virtual void serverClosed() { m_finished = true; }
 
   int mainloop();
 

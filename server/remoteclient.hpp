@@ -12,6 +12,7 @@ public:
 
   virtual ServerIface* server() const;
   virtual void pushMessage(ClientMsg*);
+  virtual void serverClosed() { m_stream.close(); }
 
   void spinup();
   void run();

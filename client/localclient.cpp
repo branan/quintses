@@ -41,8 +41,8 @@ int LocalClient::mainloop() {
   }
   if(m_server->isLocal()) {
     m_server->pushMessage(new ServerShutdownMsg(this));
-    m_server->waitForTermination();
   }
+  m_server->waitForTermination(); // on a remote server this will close the socket
   delete m_server;
   return 0;
 }

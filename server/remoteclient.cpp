@@ -51,6 +51,8 @@ void RemoteClient::run() {
         m_server->pushMessage(msg);
       } else {
         std::cerr << "QntServer: received unknown mesage of type <" << type << ">\n";
+        std::cerr << "QntServer: closing socket after unknown error\n";
+        m_stream.close();
       }
     }
   }

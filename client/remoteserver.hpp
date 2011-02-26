@@ -28,7 +28,7 @@ public:
 
 private:
   ClientIface *m_client;
-  boost::asio::ip::tcp::iostream m_stream;
+  mutable boost::asio::ip::tcp::iostream m_stream;
 
   bool m_running;
   mutable boost::condition_variable m_status_cond;

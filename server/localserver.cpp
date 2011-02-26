@@ -58,6 +58,9 @@ void LocalServer::run() {
     }
   }
 
+  for(auto i = m_clients.begin(); i != m_clients.end(); ++i) {
+    i->first->serverClosed();
+  }
   m_physics->finish();
   delete m_physics;
   {
