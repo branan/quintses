@@ -38,6 +38,8 @@ void LocalServer::run() {
   m_status_cond.notify_all();
 
   m_physics->addPhysical(getNextIdentifier(), "Floor");
+  m_physics->addPhysical(getNextIdentifier(), "LWall");
+  m_physics->addPhysical(getNextIdentifier(), "RWall");
   bool looping = true;
   while(looping) {
     ServerMsg* msg;

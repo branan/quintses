@@ -9,6 +9,8 @@
 #include "core/messages/client/clienttransobjectmsg.hpp"
 #include "server/localserver.hpp"
 
+#include <iostream>
+
 namespace {
   class BulletInternalMsg : public ServerMsg {
   public:
@@ -60,6 +62,18 @@ namespace {
     void operator()(BtPhysics* p) {
       p->run();
     }
+  };
+
+  struct planeParams {
+    std::string name;
+    btVector3 normal;
+    btVector3 position;
+  };
+
+  planeParams planes[] = {
+    {"Floor", btVector3(0, 0, 1), btVector3(0, 0, -30) },
+    {"LWall", btVector3(1, 0, 0), btVector3(-13, 0, 0) },
+    {"RWall", btVector3(-1, 0, 0), btVector3(13, 0, 0) }
   };
 }
 
@@ -202,10 +216,23 @@ void BtPhysics::parseMessage(ServerMsg *msg) {
       m_characters[obj_id]->m_state = imsg->m_state;
     } break;
     case BulletInternalMsg::AddPhysMessage: {
+      btVector3 normal, position;
       AddPhysObjMsg *amsg = static_cast<AddPhysObjMsg*>(msg);
+      size_t i;
+      for(i = 0; i < 3; ++i) {
+        if(planes[i].name == amsg->m_template) {
+          normal = planes[i].normal;
+          position = planes[i].position;
+          break;
+        }
+      }
+      if(i == 3) {
+        std::cerr << "Unknown object type: " << amsg->m_template << std::endl;
+        break;
+      }
       PhysicsObject *object = new PhysicsObject;
-      object->m_collision = new btStaticPlaneShape(btVector3(0, 0, 1), 1);
-      btDefaultMotionState *state = new btDefaultMotionState(btTransform(btQuaternion(0,0,0,1),btVector3(0,0,-12)));
+      object->m_collision = new btStaticPlaneShape(normal, 1);
+      btDefaultMotionState *state = new btDefaultMotionState(btTransform(btQuaternion(0,0,0,1), position));
       btRigidBody::btRigidBodyConstructionInfo ci(0.f, state, object->m_collision);
       object->m_body = new btRigidBody(ci);
       object->m_body->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT);
@@ -223,7 +250,7 @@ void BtPhysics::parseMessage(ServerMsg *msg) {
       character->m_collision = new btCapsuleShape(1.f, 0.f);
       character->m_object->setCollisionShape(character->m_collision);
       character->m_object->setCollisionFlags(btCollisionObject::CF_CHARACTER_OBJECT);
-      character->m_object->setWorldTransform(btTransform(btQuaternion(0,0,0,1),btVector3(0,0,-8)));
+      character->m_object->setWorldTransform(btTransform(btQuaternion(0,0,0,1),btVector3(0,-12,-25)));
       character->m_controller = new btKinematicCharacterController(character->m_object, character->m_collision, 0.35f);
       character->m_controller->setUpAxis(2);
       character->m_controller->setGravity(9.8f);
@@ -261,6 +288,8 @@ void BtPhysics::parseMessage(ServerMsg *msg) {
 void BtPhysics::updateCharacterObjects() {
   for(auto i = m_characters.begin(); i != m_characters.end(); ++i) {
     CharacterObject *character = i->second;
+    if(!character->m_controller->canJump())
+      continue;
     btTransform trans = character->m_object->getWorldTransform();
     btVector3 forward = trans.getBasis()[2];
     btVector3 up = trans.getBasis()[1];
@@ -270,7 +299,7 @@ void BtPhysics::updateCharacterObjects() {
     side.normalize();
 
     btVector3 direction(0.f, 0.f, 0.f);
-    btScalar speed = 1.f / 30.f; // for fixed 30 ticks / second physics rate
+    btScalar speed = 7.f / 30.f; // 7 units/second for fixed 30 ticks / second physics rate
     if(character->m_state & ServerInputMsg::StrafeLeft)
       direction -= side;
     if(character->m_state & ServerInputMsg::StrafeRight)
