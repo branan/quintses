@@ -29,10 +29,8 @@ public:
   virtual void pushMessage(ServerMsg*);
   virtual void finish();
 
-  virtual void addCharacter(uint32_t, const std::string&);
-  virtual void addPhysical(uint32_t, const std::string&);
-  virtual void delCharacter(uint32_t);
-  virtual void delPhysical(uint32_t);
+  virtual void addPhysical(uint32_t, const std::string&, float*, bool = false);
+  virtual void delPhysical(uint32_t, bool = false);
 
   void run();
 private:

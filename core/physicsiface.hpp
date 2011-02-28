@@ -13,10 +13,8 @@ public:
   virtual void pushMessage(ServerMsg*) =0;
   virtual void finish() =0;
 
-  virtual void addCharacter(uint32_t, const std::string&) =0;
-  virtual void addPhysical(uint32_t, const std::string&) =0;
-  virtual void delCharacter(uint32_t) =0;
-  virtual void delPhysical(uint32_t) =0;
+  virtual void addPhysical(uint32_t, const std::string&, float*, bool = false) =0;
+  virtual void delPhysical(uint32_t, bool = false) =0;
 };
 
 #endif // QNT_CORE_PHYSICSIFACE_HPP

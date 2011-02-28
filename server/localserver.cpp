@@ -16,6 +16,13 @@ namespace {
       s->run();
     }
   };
+
+  float matrix[16] = {
+    1.f, 0.f, 0.f, 0.f,
+    0.f, 1.f, 0.f, 0.f,
+    0.f, 0.f, 1.f, 0.f,
+    0.f, 0.f, 0.f, 1.f
+  };
 }
 
 LocalServer::LocalServer() : m_next_id(1) {
@@ -37,9 +44,18 @@ void LocalServer::run() {
   }
   m_status_cond.notify_all();
 
-  m_physics->addPhysical(getNextIdentifier(), "Floor");
-  m_physics->addPhysical(getNextIdentifier(), "LWall");
-  m_physics->addPhysical(getNextIdentifier(), "RWall");
+  matrix[14] = -30.f;
+  m_physics->addPhysical(getNextIdentifier(), "Floor", matrix);
+  matrix[12] = -13.f;
+  matrix[14] = 0.f;
+  m_physics->addPhysical(getNextIdentifier(), "LWall", matrix);
+  matrix[12] = 13.f;
+  m_physics->addPhysical(getNextIdentifier(), "RWall", matrix);
+
+  // Set the matrix to the default client position (HAX)
+  matrix[12] = 0.f;
+  matrix[13] = -12.f;
+  matrix[14] = -25.f;
   bool looping = true;
   while(looping) {
     ServerMsg* msg;
@@ -85,15 +101,14 @@ void LocalServer::addClient(ClientIface* c) {
     i->first->pushMessage(new ClientAddDrawableMsg(ap_new));
   }
   m_clients.insert(std::make_pair(c, ci));
-  m_physics->addCharacter(ci.m_objid, "Player");
+  m_physics->addPhysical(ci.m_objid, "Player", matrix, true);
 }
 
 void LocalServer::removeClient(ClientIface* c) {
   boost::lock_guard<boost::shared_mutex> lock(m_clients_mutex);
   uint32_t client_id = m_clients[c].m_objid;
   m_clients.erase(c);
-  m_physics->delCharacter
-(client_id);
+  m_physics->delPhysical(client_id, true);
   for(auto i = m_clients.begin(); i != m_clients.end(); ++i) {
     i->first->pushMessage(new ClientDelDrawableMsg(client_id));
   }

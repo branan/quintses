@@ -30,16 +30,17 @@ namespace {
 
   class AddPhysObjMsg : public BulletInternalMsg {
   public:
-    AddPhysObjMsg(uint32_t id, const std::string& tmp) : BulletInternalMsg(id), m_template(tmp) {}
+    AddPhysObjMsg(uint32_t id, const std::string& tmp, float *mat) : BulletInternalMsg(id), m_template(tmp) { memcpy(m_matrix, mat, 64); }
     virtual ~AddPhysObjMsg() {}
     virtual MessageType type() const { return (MessageType)BulletInternalMsg::AddPhysMessage; }
 
     std::string m_template;
+    float m_matrix[16];
   };
 
   class AddCharObjMsg: public AddPhysObjMsg {
   public:
-    AddCharObjMsg(uint32_t id, const std::string& tmp) : AddPhysObjMsg(id, tmp) {}
+    AddCharObjMsg(uint32_t id, const std::string& tmp, float *mat) : AddPhysObjMsg(id, tmp, mat) {}
     virtual ~AddCharObjMsg() {}
     virtual MessageType type() const { return (MessageType)BulletInternalMsg::AddCharMessage; }
   };
@@ -67,13 +68,12 @@ namespace {
   struct planeParams {
     std::string name;
     btVector3 normal;
-    btVector3 position;
   };
 
   planeParams planes[] = {
-    {"Floor", btVector3(0, 0, 1), btVector3(0, 0, -30) },
-    {"LWall", btVector3(1, 0, 0), btVector3(-13, 0, 0) },
-    {"RWall", btVector3(-1, 0, 0), btVector3(13, 0, 0) }
+    {"Floor", btVector3(0, 0, 1) },
+    {"LWall", btVector3(1, 0, 0) },
+    {"RWall", btVector3(-1, 0, 0) }
   };
 }
 
@@ -192,20 +192,20 @@ void BtPhysics::finish() {
   }
 }
 
-void BtPhysics::addCharacter (uint32_t id, const std::string& tmp) {
-  pushMessage(new AddCharObjMsg(id, tmp));
+void BtPhysics::addPhysical(uint32_t id, const std::string& tmp, float *mat, bool isCharacter) {
+  if(isCharacter) {
+    pushMessage(new AddCharObjMsg(id, tmp, mat));
+  } else {
+    pushMessage(new AddPhysObjMsg(id, tmp, mat));
+  }
 }
 
-void BtPhysics::addPhysical(uint32_t id, const std::string& tmp) {
-  pushMessage(new AddPhysObjMsg(id, tmp));
-}
-
-void BtPhysics::delCharacter (uint32_t id) {
-  pushMessage(new DelCharObjMsg(id));
-}
-
-void BtPhysics::delPhysical(uint32_t id) {
-  pushMessage(new DelPhysObjMsg(id));
+void BtPhysics::delPhysical(uint32_t id, bool isCharacter) {
+  if(isCharacter) {
+    pushMessage(new DelCharObjMsg(id));
+  } else {
+    pushMessage(new DelPhysObjMsg(id));
+  }
 }
 
 void BtPhysics::parseMessage(ServerMsg *msg) {
@@ -216,13 +216,12 @@ void BtPhysics::parseMessage(ServerMsg *msg) {
       m_characters[obj_id]->m_state = imsg->m_state;
     } break;
     case BulletInternalMsg::AddPhysMessage: {
-      btVector3 normal, position;
+      btVector3 normal;
       AddPhysObjMsg *amsg = static_cast<AddPhysObjMsg*>(msg);
       size_t i;
       for(i = 0; i < 3; ++i) {
         if(planes[i].name == amsg->m_template) {
           normal = planes[i].normal;
-          position = planes[i].position;
           break;
         }
       }
@@ -232,7 +231,9 @@ void BtPhysics::parseMessage(ServerMsg *msg) {
       }
       PhysicsObject *object = new PhysicsObject;
       object->m_collision = new btStaticPlaneShape(normal, 1);
-      btDefaultMotionState *state = new btDefaultMotionState(btTransform(btQuaternion(0,0,0,1), position));
+      btTransform trans;
+      trans.setFromOpenGLMatrix(amsg->m_matrix);
+      btDefaultMotionState *state = new btDefaultMotionState(trans);
       btRigidBody::btRigidBodyConstructionInfo ci(0.f, state, object->m_collision);
       object->m_body = new btRigidBody(ci);
       object->m_body->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT);
@@ -250,7 +251,9 @@ void BtPhysics::parseMessage(ServerMsg *msg) {
       character->m_collision = new btCapsuleShape(1.f, 0.f);
       character->m_object->setCollisionShape(character->m_collision);
       character->m_object->setCollisionFlags(btCollisionObject::CF_CHARACTER_OBJECT);
-      character->m_object->setWorldTransform(btTransform(btQuaternion(0,0,0,1),btVector3(0,-12,-25)));
+      btTransform trans;
+      trans.setFromOpenGLMatrix(cmsg->m_matrix);
+      character->m_object->setWorldTransform(trans);
       character->m_controller = new btKinematicCharacterController(character->m_object, character->m_collision, 0.35f);
       character->m_controller->setUpAxis(2);
       character->m_controller->setGravity(9.8f);
