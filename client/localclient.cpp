@@ -3,6 +3,7 @@
 #include "core/renderiface.hpp"
 #include "core/serveriface.hpp"
 #include "core/messages/client/clientmsg.hpp"
+#include "core/messages/server/loadplayermsg.hpp"
 #include "core/messages/server/shutdownmsg.hpp"
 
 #include "openal/alaudio.hpp"
@@ -11,6 +12,7 @@ LocalClient::LocalClient(ServerIface *srv) : m_server(srv), m_finished(false) {
   initializePlatform();
   m_audio = new AlAudio;
   m_server->addClient(this);
+  m_server->pushMessage(new ServerLoadPlayerMsg(this, "Player"));
 }
 
 LocalClient::~LocalClient() {

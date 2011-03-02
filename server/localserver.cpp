@@ -4,6 +4,7 @@
 #include "bullet/btphysics.hpp"
 
 #include "core/messages/server/inputmsg.hpp"
+#include "core/messages/server/loadplayermsg.hpp"
 #include "core/messages/server/shutdownmsg.hpp"
 #include "core/messages/client/clientaddobjectmsg.hpp"
 #include "core/messages/client/clientdelobjectmsg.hpp"
@@ -68,6 +69,10 @@ void LocalServer::run() {
       case ServerMsg::InputMessage:
         m_physics->pushMessage(msg);
         break;
+      case ServerMsg::LoadPlayer:
+        loadPlayer(static_cast<ServerLoadPlayerMsg*>(msg));
+        delete msg;
+        break;
       default:
         delete msg;
         break;
@@ -76,6 +81,9 @@ void LocalServer::run() {
 
   for(auto i = m_clients.begin(); i != m_clients.end(); ++i) {
     i->first->serverClosed();
+  }
+  for(auto i = m_lobby_clients.begin(); i != m_lobby_clients.end(); ++i) {
+    (*i)->serverClosed();
   }
   m_physics->finish();
   delete m_physics;
@@ -88,25 +96,20 @@ void LocalServer::run() {
 
 void LocalServer::addClient(ClientIface* c) {
   boost::lock_guard<boost::shared_mutex> lock(m_clients_mutex);
-  ClientInfo ci;
-  ci.m_objid = getNextIdentifier();
 
   // Add player drawables to all clients
   // locations will be synched on next physics tick
-  ClientAddObjectParams ap_new("Player", ci.m_objid);
-  c->pushMessage(new ClientAddDrawableMsg(ap_new));
   for(auto i = m_clients.begin(); i != m_clients.end(); ++i) {
-    ClientAddObjectParams ap_old("Player", i->second.m_objid);
+    // TODO: get template name from object info
+    ClientAddObjectParams ap_old("Player", i->second);
     c->pushMessage(new ClientAddDrawableMsg(ap_old));
-    i->first->pushMessage(new ClientAddDrawableMsg(ap_new));
   }
-  m_clients.insert(std::make_pair(c, ci));
-  m_physics->addPhysical(ci.m_objid, "Player", matrix, true);
+  m_lobby_clients.insert(c);
 }
 
 void LocalServer::removeClient(ClientIface* c) {
   boost::lock_guard<boost::shared_mutex> lock(m_clients_mutex);
-  uint32_t client_id = m_clients[c].m_objid;
+  uint32_t client_id = m_clients[c];
   m_clients.erase(c);
   m_physics->delPhysical(client_id, true);
   for(auto i = m_clients.begin(); i != m_clients.end(); ++i) {
@@ -147,4 +150,16 @@ void LocalServer::pushClientTransforms(LocalServer::ClientTransList& trans) {
 
 uint32_t LocalServer::getNextIdentifier() {
   return fetchAndIncrement(m_next_id);
+}
+
+void LocalServer::loadPlayer(ServerLoadPlayerMsg *msg) {
+  ClientIface *client = msg->m_sender;
+  m_lobby_clients.erase(client);
+  uint32_t id = getNextIdentifier();
+  m_physics->addPhysical(id, msg->m_template, matrix, true);
+  m_clients.insert(std::make_pair(client, id));
+  ClientAddObjectParams p(msg->m_template, id);
+  for(auto i = m_clients.begin(); i != m_clients.end(); ++i) {
+    i->first->pushMessage(new ClientAddDrawableMsg(p));
+  }
 }
