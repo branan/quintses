@@ -10,7 +10,6 @@
 #include "core/messages/client/clientdelobjectmsg.hpp"
 #include "core/messages/client/clienttransobjectmsg.hpp"
 #include "core/util/atomic.hpp"
-#include "core/util/xml.hpp"
 #include "core/util/math.hpp"
 #include "core/util/xml_helpers.hpp"
 
@@ -94,6 +93,10 @@ void LocalServer::addClient(ClientIface* c) {
     ClientAddObjectParams ap_old("Player", i->second);
     c->pushMessage(new ClientAddDrawableMsg(ap_old));
   }
+  for(auto i = m_baddies.begin(); i != m_baddies.end(); ++i) {
+    ClientAddObjectParams ab(i->m_templ, i->m_id);
+    c->pushMessage(new ClientAddDrawableMsg(ab));
+  }
   m_lobby_clients.insert(c);
 }
 
@@ -134,6 +137,8 @@ void LocalServer::pushClientTransforms(LocalServer::ClientTransList& trans) {
     tp.m_objid = i->first;
     for(auto j = m_clients.begin(); j != m_clients.end(); ++j)
       j->first->pushMessage(new ClientTransDrawableMsg(tp));
+    for(auto j = m_lobby_clients.begin(); j != m_lobby_clients.end(); ++j)
+      (*j)->pushMessage(new ClientTransDrawableMsg(tp));
     delete[] i->second;
   }
 }
@@ -176,9 +181,37 @@ void LocalServer::loadWorld() {
   if(spawn_node) {
     m_player_spawn = parseTransform(spawn_node->first_node("Transform"));
   }
+  loadMobGroup(root_node->first_node("MobGroup")); // TODO: add support for more than one mob group
   for(rapidxml::xml_node<> *node = root_node->first_node("Blocker"); node != 0; node = node->next_sibling()) {
     char *templ = node->first_node("Template")->value();
     glm::mat4 trans = parseTransform(node->first_node("Transform"));
     m_physics->addPhysical(getNextIdentifier(), templ, glm::value_ptr(trans));
+  }
+}
+
+void LocalServer::loadMobGroup(rapidxml::xml_node<> *node) {
+  BaddieData b;
+  b.m_templ = node->first_node("Template")->value();
+  glm::quat quat = parseQuaternion(node->first_node("Quaternion"));
+  float height = atof(node->first_node("Height")->value());
+  rapidxml::xml_node<> *grid_node = node->first_node("Grid"); // TODO: support other sorts of mob layouts
+  float xmin, xmax, xdelta;
+  float ymin, ymax, ydelta;
+  int xdiv, ydiv;
+  xmin = atof(grid_node->first_node("xmin")->value());
+  xmax = atof(grid_node->first_node("xmax")->value());
+  ymin = atof(grid_node->first_node("ymin")->value());
+  ymax = atof(grid_node->first_node("ymax")->value());
+  xdiv = atoi(grid_node->first_node("xdiv")->value());
+  ydiv = atoi(grid_node->first_node("ydiv")->value());
+  xdelta = (xmax-xmin) / float(xdiv-1);
+  ydelta = (ymax-ymin) / float(ydiv-1);
+  for(float x = xmin, i = 0; i < xdiv; ++i, x += xdelta) {
+    for(float y = ymin, j = 0; j < ydiv; ++j, y += ydelta) {
+      b.m_id = getNextIdentifier();
+      glm::mat4 trans = glm::translate(glm::mat4(), glm::vec3(x, y, height)) * glm::mat4_cast(quat);
+      m_physics->addPhysical(b.m_id, b.m_templ, glm::value_ptr(trans), true); // monsters are characters too!
+      m_baddies.push_back(b);
+    }
   }
 }

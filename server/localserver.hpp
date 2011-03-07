@@ -9,6 +9,7 @@
 
 #include "core/serveriface.hpp"
 #include "core/util/queue.hpp"
+#include "core/util/xml.hpp"
 #include "glm/glm.hpp"
 
 class PhysicsIface;
@@ -39,6 +40,12 @@ private:
   glm::mat4 m_player_spawn;
   uint32_t m_next_id; // this is the global identifier counter. Hopefully we never have more than ~4 Billion objects
 
+  struct BaddieData {
+    std::string m_templ;
+    uint32_t m_id;
+  };
+  std::vector<BaddieData> m_baddies;
+
   // event queue
   queue<ServerMsg*> m_msg_queue;
 
@@ -55,6 +62,7 @@ private:
 
   void loadPlayer(ServerLoadPlayerMsg*);
   void loadWorld();
+  void loadMobGroup(rapidxml::xml_node<>*);
 };
 
 #endif // QNT_SERVER_LOCALSERVER_H
