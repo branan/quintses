@@ -147,8 +147,7 @@ void LocalServer::loadPlayer(ServerLoadPlayerMsg *msg) {
   ClientIface *client = msg->m_sender;
   m_lobby_clients.erase(client);
   uint32_t id = getNextIdentifier();
-  glm::mat4 mat = glm::translate(glm::mat4(), glm::vec3(0.f, -12.f, -25.f));
-  m_physics->addPhysical(id, msg->m_template, glm::value_ptr(mat), true);
+  m_physics->addPhysical(id, msg->m_template, glm::value_ptr(m_player_spawn), true);
   m_clients.insert(std::make_pair(client, id));
   ClientAddObjectParams p(msg->m_template, id);
   for(auto i = m_clients.begin(); i != m_clients.end(); ++i) {
@@ -172,6 +171,10 @@ void LocalServer::loadWorld() {
   if(!root_node) {
     //TODO throw an error and disconnect all clients
     return;
+  }
+  rapidxml::xml_node<> *spawn_node = root_node->first_node("PlayerSpawn");
+  if(spawn_node) {
+    m_player_spawn = parseTransform(spawn_node->first_node("Transform"));
   }
   for(rapidxml::xml_node<> *node = root_node->first_node("Blocker"); node != 0; node = node->next_sibling()) {
     char *templ = node->first_node("Template")->value();

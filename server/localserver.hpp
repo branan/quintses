@@ -9,6 +9,7 @@
 
 #include "core/serveriface.hpp"
 #include "core/util/queue.hpp"
+#include "glm/glm.hpp"
 
 class PhysicsIface;
 class ServerLoadPlayerMsg;
@@ -35,6 +36,7 @@ public:
 private:
   std::map<ClientIface*, uint32_t> m_clients;
   std::set<ClientIface*> m_lobby_clients;
+  glm::mat4 m_player_spawn;
   uint32_t m_next_id; // this is the global identifier counter. Hopefully we never have more than ~4 Billion objects
 
   // event queue
