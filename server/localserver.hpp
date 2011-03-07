@@ -52,6 +52,7 @@ private:
   uint32_t getNextIdentifier();
 
   void loadPlayer(ServerLoadPlayerMsg*);
+  void loadWorld();
 };
 
 #endif // QNT_SERVER_LOCALSERVER_H

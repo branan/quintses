@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<QuintsesWorld>
+  <Blocker>
+    <Template>Floor</Template>
+    <Transform>
+      <Position>
+        <X>0.0</X>
+        <Y>0.0</Y>
+        <Z>-30.0</Z>
+      </Position>
+    </Transform>
+  </Blocker>
+  <Blocker>
+    <Template>LWall</Template>
+    <Transform>
+      <Position>
+        <X>-13.0</X>
+        <Y>0.0</Y>
+        <Z>0.0</Z>
+      </Position>
+    </Transform>
+  </Blocker>
+  <Blocker>
+    <Template>RWall</Template>
+    <Transform>
+      <Position>
+        <X>13.0</X>
+        <Y>0.0</Y>
+        <Z>0.0</Z>
+      </Position>
+    </Transform>
+  </Blocker>
+</QuintsesWorld>

@@ -10,19 +10,19 @@
 #include "core/messages/client/clientdelobjectmsg.hpp"
 #include "core/messages/client/clienttransobjectmsg.hpp"
 #include "core/util/atomic.hpp"
+#include "core/util/xml.hpp"
+#include "core/util/math.hpp"
+#include "core/util/xml_helpers.hpp"
+
+#include <fstream>
+#include <iterator>
+#include <iostream>
 
 namespace {
   struct ServerLauncher {
     void operator()(LocalServer* s) {
       s->run();
     }
-  };
-
-  float matrix[16] = {
-    1.f, 0.f, 0.f, 0.f,
-    0.f, 1.f, 0.f, 0.f,
-    0.f, 0.f, 1.f, 0.f,
-    0.f, 0.f, 0.f, 1.f
   };
 }
 
@@ -45,18 +45,8 @@ void LocalServer::run() {
   }
   m_status_cond.notify_all();
 
-  matrix[14] = -30.f;
-  m_physics->addPhysical(getNextIdentifier(), "Floor", matrix);
-  matrix[12] = -13.f;
-  matrix[14] = 0.f;
-  m_physics->addPhysical(getNextIdentifier(), "LWall", matrix);
-  matrix[12] = 13.f;
-  m_physics->addPhysical(getNextIdentifier(), "RWall", matrix);
+  loadWorld();
 
-  // Set the matrix to the default client position (HAX)
-  matrix[12] = 0.f;
-  matrix[13] = -12.f;
-  matrix[14] = -25.f;
   bool looping = true;
   while(looping) {
     ServerMsg* msg;
@@ -153,13 +143,39 @@ uint32_t LocalServer::getNextIdentifier() {
 }
 
 void LocalServer::loadPlayer(ServerLoadPlayerMsg *msg) {
+  //TODO: validate the template passed here is OK for use as a player
   ClientIface *client = msg->m_sender;
   m_lobby_clients.erase(client);
   uint32_t id = getNextIdentifier();
-  m_physics->addPhysical(id, msg->m_template, matrix, true);
+  glm::mat4 mat = glm::translate(glm::mat4(), glm::vec3(0.f, -12.f, -25.f));
+  m_physics->addPhysical(id, msg->m_template, glm::value_ptr(mat), true);
   m_clients.insert(std::make_pair(client, id));
   ClientAddObjectParams p(msg->m_template, id);
   for(auto i = m_clients.begin(); i != m_clients.end(); ++i) {
     i->first->pushMessage(new ClientAddDrawableMsg(p));
+  }
+}
+
+void LocalServer::loadWorld() {
+  std::ifstream xml_file("data/world.xml");
+  if(!xml_file) {
+    //TODO: throw an error
+    return;
+  }
+  std::string xml_data;
+  std::copy(std::istream_iterator<char>(xml_file), std::istream_iterator<char>(), xml_data.begin());
+  XmlDom xml(xml_data);
+  // cleanup the file and string now that they're no longer needed
+  xml_data = "";
+  xml_file.close();
+  rapidxml::xml_node<> *root_node = xml.doc()->first_node("QuintsesWorld");
+  if(!root_node) {
+    //TODO throw an error and disconnect all clients
+    return;
+  }
+  for(rapidxml::xml_node<> *node = root_node->first_node("Blocker"); node != 0; node = node->next_sibling()) {
+    char *templ = node->first_node("Template")->value();
+    glm::mat4 trans = parseTransform(node->first_node("Transform"));
+    m_physics->addPhysical(getNextIdentifier(), templ, glm::value_ptr(trans));
   }
 }

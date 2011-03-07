@@ -46,7 +46,7 @@ public:
       fetchAndIncrementP(m_count);
     return *this;
   }
-  rapidxml::xml_document<> *doc();
+  rapidxml::xml_document<> *doc() { return m_document; }
 private:
   uint32_t *m_count;
   rapidxml::xml_document<> *m_document;
