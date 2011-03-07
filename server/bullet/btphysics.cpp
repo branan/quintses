@@ -213,7 +213,8 @@ void BtPhysics::parseMessage(ServerMsg *msg) {
     case ServerMsg::InputMessage: {
       ServerInputMsg *imsg = static_cast<ServerInputMsg*>(msg);
       uint32_t obj_id = m_server->getClientId(msg->m_sender);
-      m_characters[obj_id]->m_state = imsg->m_state;
+      if(m_characters.find(obj_id) != m_characters.end())
+        m_characters[obj_id]->m_state = imsg->m_state;
     } break;
     case BulletInternalMsg::AddPhysMessage: {
       btVector3 normal;
