@@ -145,6 +145,10 @@ void LocalClient::platformEvents() {
             adjustKeysym(ServerInputMsg::StrafeRight);
             keys_changed = true;
             break;
+          case ' ':
+            adjustKeysym(ServerInputMsg::Shoot);
+            keys_changed = true;
+            break;
           default:
             break;
         }

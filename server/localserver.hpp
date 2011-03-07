@@ -33,6 +33,7 @@ public:
   typedef std::vector<std::pair<uint32_t,float*> > ClientTransList;
   inline uint32_t getClientId(ClientIface* cli) { boost::shared_lock<boost::shared_mutex> lock(m_clients_mutex); return m_clients[cli]; }
   void pushClientTransforms(ClientTransList&);
+  void runTickCallbacks();
 
 private:
   std::map<ClientIface*, uint32_t> m_clients;
@@ -63,6 +64,8 @@ private:
   void loadPlayer(ServerLoadPlayerMsg*);
   void loadWorld();
   void loadMobGroup(rapidxml::xml_node<>*);
+
+  uint m_ticks;
 };
 
 #endif // QNT_SERVER_LOCALSERVER_H

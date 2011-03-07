@@ -25,7 +25,7 @@ namespace {
   };
 }
 
-LocalServer::LocalServer() : m_next_id(1) {
+LocalServer::LocalServer() : m_next_id(1), m_ticks(0) {
   m_running = false;
   ServerLauncher launcher;
   boost::thread t(launcher, this);
@@ -142,6 +142,21 @@ void LocalServer::pushClientTransforms(LocalServer::ClientTransList& trans) {
     delete[] i->second;
   }
 }
+
+void LocalServer::runTickCallbacks() {
+  m_ticks++;
+  if(m_ticks == 40)
+    m_ticks = 0;
+  uint16_t state;
+  if(m_ticks < 20)
+    state = ServerInputMsg::StrafeLeft;
+  else
+    state = ServerInputMsg::StrafeRight;
+  for(auto i = m_baddies.begin(); i != m_baddies.end(); ++i) {
+    m_physics->setInputStateCallback(i->m_id, state);
+  }
+}
+
 
 uint32_t LocalServer::getNextIdentifier() {
   return fetchAndIncrement(m_next_id);

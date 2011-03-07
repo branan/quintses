@@ -31,6 +31,9 @@ public:
 
   virtual void addPhysical(uint32_t, const std::string&, float*, bool = false);
   virtual void delPhysical(uint32_t, bool = false);
+  virtual void setInputState(uint32_t, uint16_t);
+
+  virtual void setInputStateCallback(uint32_t, uint16_t);
 
   void run();
 private:

@@ -15,6 +15,10 @@ public:
 
   virtual void addPhysical(uint32_t, const std::string&, float*, bool = false) =0;
   virtual void delPhysical(uint32_t, bool = false) =0;
+  virtual void setInputState(uint32_t, uint16_t) =0;
+
+  // the Callback versions of functions run immediately, rather than being added to the queue. They're only safe during physics callbacks
+  virtual void setInputStateCallback(uint32_t, uint16_t) =0;
 };
 
 #endif // QNT_CORE_PHYSICSIFACE_HPP

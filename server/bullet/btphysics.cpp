@@ -19,6 +19,7 @@ namespace {
       AddCharMessage,
       DelPhysMessage,
       DelCharMessage,
+      ForceStateMessage,
     };
     BulletInternalMsg(uint32_t id) : ServerMsg(0), m_objid(id) {}
     virtual ~BulletInternalMsg() {}
@@ -57,6 +58,15 @@ namespace {
     DelCharObjMsg(uint32_t id) : DelPhysObjMsg(id) {}
     virtual ~DelCharObjMsg() {}
     virtual MessageType type() const { return (MessageType)BulletInternalMsg::DelCharMessage; }
+  };
+
+  class ForceStateMsg : public BulletInternalMsg {
+  public:
+    ForceStateMsg(uint32_t id, uint16_t state) : BulletInternalMsg(id), m_state(state) {}
+    virtual ~ForceStateMsg() {}
+    virtual MessageType type() const { return (MessageType)BulletInternalMsg::ForceStateMessage; }
+
+    uint16_t m_state;
   };
 
   struct BulletLauncher {
@@ -143,6 +153,7 @@ void BtPhysics::run() {
       i->second->m_object->getWorldTransform().getOpenGLMatrix(mat);
       ct.push_back(std::make_pair(i->first, mat));
     }
+    m_server->runTickCallbacks();
     m_server->pushClientTransforms(ct);
 
     boost::this_thread::sleep(t);
@@ -208,13 +219,26 @@ void BtPhysics::delPhysical(uint32_t id, bool isCharacter) {
   }
 }
 
+void BtPhysics::setInputState(uint32_t id, uint16_t state) {
+  pushMessage(new ForceStateMsg(id, state));
+}
+
+void BtPhysics::setInputStateCallback(uint32_t id, uint16_t state) {
+  auto i = m_characters.find(id);
+  if(i != m_characters.end())
+    i->second->m_state = state;
+}
+
 void BtPhysics::parseMessage(ServerMsg *msg) {
   switch(msg->type()) {
+    case BulletInternalMsg::ForceStateMessage: {
+      ForceStateMsg *smsg = static_cast<ForceStateMsg*>(msg);
+      setInputStateCallback(smsg->m_objid, smsg->m_state);
+    } break;
     case ServerMsg::InputMessage: {
       ServerInputMsg *imsg = static_cast<ServerInputMsg*>(msg);
       uint32_t obj_id = m_server->getClientId(msg->m_sender);
-      if(m_characters.find(obj_id) != m_characters.end())
-        m_characters[obj_id]->m_state = imsg->m_state;
+      setInputStateCallback(obj_id, imsg->m_state);
     } break;
     case BulletInternalMsg::AddPhysMessage: {
       btVector3 normal;
@@ -238,6 +262,7 @@ void BtPhysics::parseMessage(ServerMsg *msg) {
       btRigidBody::btRigidBodyConstructionInfo ci(0.f, state, object->m_collision);
       object->m_body = new btRigidBody(ci);
       object->m_body->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT);
+      object->m_body->setFriction(0.f);
       m_world->addRigidBody(object->m_body);
       m_objects[amsg->m_objid] = object;
     } break;
@@ -255,6 +280,7 @@ void BtPhysics::parseMessage(ServerMsg *msg) {
       btTransform trans;
       trans.setFromOpenGLMatrix(cmsg->m_matrix);
       character->m_object->setWorldTransform(trans);
+      character->m_object->setFriction(0.f);
       character->m_controller = new btKinematicCharacterController(character->m_object, character->m_collision, 0.35f);
       character->m_controller->setUpAxis(2);
       character->m_controller->setGravity(9.8f);
@@ -321,6 +347,12 @@ void BtPhysics::updateCharacterObjects() {
       btMatrix3x3 basis = character->m_object->getWorldTransform().getBasis();
       basis *= btMatrix3x3(btQuaternion(btVector3(0,1,0),-0.01));
       character->m_object->getWorldTransform ().setBasis(basis);
+    }
+    if(character->m_state & ServerInputMsg::Jump && character->m_controller->canJump()) {
+      character->m_controller->jump();
+    }
+    if(character->m_state & ServerInputMsg::Shoot) {
+      //TODO: launch projectile physical
     }
 
     character->m_controller->setWalkDirection(direction * speed);

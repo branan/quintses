@@ -11,7 +11,9 @@ public:
     WalkForward = 1 << 2,
     WalkReverse = 1 << 3,
     TurnLeft = 1 << 4,
-    TurnRight = 1 << 5
+    TurnRight = 1 << 5,
+    Jump = 1 << 6,
+    Shoot = 1 << 7,
   };
   ServerInputMsg(ClientIface* cli) : ServerMsg(cli) {}
   virtual ~ServerInputMsg();
