@@ -7,6 +7,10 @@
 
 struct PlatformData;
 
+/// \brief A data loader for an OpenGL-based renderer
+/// \ingroup Client
+/// \ingroup Graphics
+/// \sa GlRenderer
 class GlLoader : public LoaderIface {
 public:
   GlLoader(PlatformData*);

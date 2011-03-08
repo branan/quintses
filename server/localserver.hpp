@@ -15,6 +15,10 @@
 class PhysicsIface;
 class ServerLoadPlayerMsg;
 
+/// \brief The primary server class
+/// \ingroup Server
+/// This is a working server class that handles physics, AI, and
+/// general game logic.
 class LocalServer : public ServerIface {
 public:
   LocalServer();
@@ -30,9 +34,19 @@ public:
 
   virtual int waitForTermination() const;
 
+  /// \brief List of entity IDs and transformation matrices
   typedef std::vector<std::pair<uint32_t,float*> > ClientTransList;
+
+  /// \brief Get the identifier for a given client pointer
   inline uint32_t getClientId(ClientIface* cli) { boost::shared_lock<boost::shared_mutex> lock(m_clients_mutex); return m_clients[cli]; }
+
+  /// \brief Push object transformations to all clients
+  /// This function locks the client list mutex for the duration of its execution
   void pushClientTransforms(ClientTransList&);
+
+  /// \brief Run all game tick callbacks
+  /// This function should be called by the physics implementation. It runs all game
+  /// callbacks that should be executed each physics tick. This may include AI or animation messages.
   void runTickCallbacks();
 
 private:
@@ -61,8 +75,22 @@ private:
 
   uint32_t getNextIdentifier();
 
+  /// \brief Initialize player structures
+  /// \internal
+  /// This is a helper function to initialize a player character from a 
   void loadPlayer(ServerLoadPlayerMsg*);
+
+  /// \brief Load the world XML
+  /// \internal
+  /// This function parses the world XML and initializes all startup entities
   void loadWorld();
+
+  /// \brief Load a group of enemies
+  /// \internal
+  /// This parses a mob group XML node. Mob groups can be defined to be created
+  /// based on different layouts and parameters. See the world XML reference for
+  /// details.
+  /// \note Currently only a uniform grid is supported
   void loadMobGroup(rapidxml::xml_node<>*);
 
   uint m_ticks;

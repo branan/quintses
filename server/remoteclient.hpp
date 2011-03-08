@@ -5,6 +5,11 @@
 #include "core/util/queue.hpp"
 #include <boost/asio.hpp>
 
+/// \brief Networked client
+/// \ingroup Server
+/// \ingroup Client
+/// \ingroup Network
+/// This class implements a socket interface to a client.
 class RemoteClient : public ClientIface {
 public:
   RemoteClient(ServerIface*);
@@ -14,8 +19,13 @@ public:
   virtual void pushMessage(ClientMsg*);
   virtual void serverClosed() { m_stream.close(); }
 
+  /// \brief launch the socket listen thread
   void spinup();
+
+  /// \brief Main thread function
   void run();
+
+  /// \brief Get the internal socket stream
   boost::asio::ip::tcp::iostream& stream() { return m_stream; }
 
 private:

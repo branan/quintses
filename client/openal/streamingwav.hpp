@@ -3,6 +3,10 @@
 
 #include "streamingfile.hpp"
 
+/// \brief A wav audio file streamed from the hard disk
+/// \ingroup Client
+/// \ingroup Audio
+/// This class wraps uncompressed PCM audio in the wav format
 class StreamingWav : public StreamingFile {
 public:
   StreamingWav(const char*);

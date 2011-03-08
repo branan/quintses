@@ -21,6 +21,10 @@ class LocalServer;
 struct PhysicsObject;
 struct CharacterObject;
 
+/// \brief Implementation of a physics engine in bullet
+/// \ingroup Server
+/// \ingroup Physics
+/// \todo Add support for dynamic character objects. Bullet's kinematic controller sucks the big one.
 class BtPhysics : public PhysicsIface {
 public:
   BtPhysics(LocalServer*);

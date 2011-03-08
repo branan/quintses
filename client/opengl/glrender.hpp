@@ -9,6 +9,9 @@ class LoaderIface;
 
 struct GlDrawable;
 
+/// \brief A renderer implemented in OpenGL
+/// \ingroup Client
+/// \ingroup Grahpics
 class GlRender : public RenderIface {
 public:
   GlRender(LoaderIface*);

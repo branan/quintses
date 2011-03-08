@@ -12,6 +12,9 @@ struct ALCdevice_struct;
 
 class StreamingFile;
 
+/// \brief An audio system implemented in OpenAL
+/// \ingroup Client
+/// \ingroup Audio
 class AlAudio : public AudioIface {
 public:
   AlAudio();
