@@ -12,8 +12,8 @@ public:
   virtual ~ServerLoadPlayerMsg();
 
   virtual MessageType type() const;
-  virtual void read(std::iostream&);
-  virtual void write(std::iostream&) const;
+  virtual void read(SocketWrapper&);
+  virtual void write(SocketWrapper&) const;
 
   std::string m_template;
 };

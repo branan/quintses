@@ -17,8 +17,8 @@ class ClientAddObjectMsg : public ClientMsg {
 public:
   ClientAddObjectMsg(const ClientAddObjectParams& p) : m_objid(p.m_objid), m_template(p.m_template) {}
   virtual ~ClientAddObjectMsg();
-  virtual void read(std::iostream&);
-  virtual void write(std::iostream&) const;
+  virtual void read(SocketWrapper&);
+  virtual void write(SocketWrapper&) const;
 
   uint32_t m_objid;
   std::string m_template;

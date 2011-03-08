@@ -1,17 +1,17 @@
 #include "clientdelobjectmsg.hpp"
 
-#include <iostream>
+#include "core/util/socket.hpp"
 
 ClientDelObjectMsg::~ClientDelObjectMsg() {}
 ClientDelDrawableMsg::~ClientDelDrawableMsg() {}
 ClientDelAudibleMsg::~ClientDelAudibleMsg() {}
 
-void ClientDelObjectMsg::read(std::iostream& stream) {
-  stream.read((char*)&m_objid, 4);
+void ClientDelObjectMsg::read(SocketWrapper &stream) {
+  stream.readPod(m_objid);
 }
 
-void ClientDelObjectMsg::write(std::iostream& stream) const {
-  stream.write((char*)&m_objid, 4);
+void ClientDelObjectMsg::write(SocketWrapper &stream) const {
+  stream.writePod(m_objid);
 }
 
 ClientMsg::MessageType ClientDelDrawableMsg::type() const {

@@ -104,9 +104,15 @@ void LocalServer::removeClient(ClientIface* c) {
   boost::lock_guard<boost::shared_mutex> lock(m_clients_mutex);
   uint32_t client_id = m_clients[c];
   m_clients.erase(c);
-  m_physics->delPhysical(client_id, true);
-  for(auto i = m_clients.begin(); i != m_clients.end(); ++i) {
-    i->first->pushMessage(new ClientDelDrawableMsg(client_id));
+  m_lobby_clients.erase(c);
+  if(client_id) {
+    m_physics->delPhysical(client_id, true);
+    for(auto i = m_clients.begin(); i != m_clients.end(); ++i) {
+      i->first->pushMessage(new ClientDelDrawableMsg(client_id));
+    }
+    for(auto i = m_lobby_clients.begin(); i != m_lobby_clients.end(); ++i) {
+      (*i)->pushMessage(new ClientDelDrawableMsg(client_id));
+    }
   }
 }
 
@@ -164,6 +170,7 @@ uint32_t LocalServer::getNextIdentifier() {
 
 void LocalServer::loadPlayer(ServerLoadPlayerMsg *msg) {
   //TODO: validate the template passed here is OK for use as a player
+  boost::lock_guard<boost::shared_mutex> lock(m_clients_mutex);
   ClientIface *client = msg->m_sender;
   m_lobby_clients.erase(client);
   uint32_t id = getNextIdentifier();

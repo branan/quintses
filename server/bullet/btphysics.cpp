@@ -23,8 +23,8 @@ namespace {
     };
     BulletInternalMsg(uint32_t id) : ServerMsg(0), m_objid(id) {}
     virtual ~BulletInternalMsg() {}
-    virtual void read(std::iostream&) {};
-    virtual void write(std::iostream&) const {};
+    virtual void read(SocketWrapper&) {};
+    virtual void write(SocketWrapper&) const {};
 
     uint32_t m_objid;
   };

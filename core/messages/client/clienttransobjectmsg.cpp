@@ -1,19 +1,19 @@
 #include "clienttransobjectmsg.hpp"
 
-#include <iostream>
+#include "core/util/socket.hpp"
 
 ClientTransObjectMsg::~ClientTransObjectMsg() {}
 ClientTransDrawableMsg::~ClientTransDrawableMsg() {}
 ClientTransAudibleMsg::~ClientTransAudibleMsg() {}
 
-void ClientTransObjectMsg::read(std::iostream& stream) {
-  stream.read((char*)&m_objid, 4);
-  stream.read((char*)m_transform, 64);
+void ClientTransObjectMsg::read(SocketWrapper &stream) {
+  stream.readPod(m_objid);
+  stream.read(m_transform, 64);
 }
 
-void ClientTransObjectMsg::write(std::iostream& stream) const {
-  stream.write((char*)&m_objid, 4);
-  stream.write((char*)m_transform, 64);
+void ClientTransObjectMsg::write(SocketWrapper &stream) const {
+  stream.writePod(m_objid);
+  stream.write(m_transform, 64);
 }
 
 ClientMsg::MessageType ClientTransDrawableMsg::type() const {

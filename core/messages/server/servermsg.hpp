@@ -1,9 +1,9 @@
 #ifndef QNT_CORE_MESSAGES_SERVER_SERVERMSG_HPP
 #define QNT_CORE_MESSAGES_SERVER_SERVERMSG_HPP
 
-#include <iosfwd>
 #include <boost/cstdint.hpp>
 
+class SocketWrapper;
 class ClientIface;
 
 class ServerMsg {
@@ -19,8 +19,8 @@ public:
   ServerMsg(ClientIface*);
   virtual ~ServerMsg();
   virtual MessageType type() const =0;
-  virtual void read(std::iostream&) =0;
-  virtual void write(std::iostream&) const =0;
+  virtual void read(SocketWrapper&) =0;
+  virtual void write(SocketWrapper&) const =0;
 
   ClientIface* m_sender;
   

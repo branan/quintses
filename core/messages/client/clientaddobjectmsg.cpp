@@ -1,21 +1,19 @@
 #include "clientaddobjectmsg.hpp"
 
-#include "core/util/streamhelpers.hpp"
-
-#include <iostream>
+#include "core/util/socket.hpp"
 
 ClientAddObjectMsg::~ClientAddObjectMsg() {}
 ClientAddDrawableMsg::~ClientAddDrawableMsg() {}
 ClientAddAudibleMsg::~ClientAddAudibleMsg() {}
 
-void ClientAddObjectMsg::read(std::iostream& stream) {
-  stream.read((char*)&m_objid, 4);
-  m_template = readString(stream);
+void ClientAddObjectMsg::read(SocketWrapper &stream) {
+  stream.readPod(m_objid);
+  stream.readString(m_template);
 }
 
-void ClientAddObjectMsg::write(std::iostream& stream) const {
-  stream.write((char*)&m_objid, 4);
-  writeString(stream, m_template);
+void ClientAddObjectMsg::write(SocketWrapper &stream) const {
+  stream.writePod(m_objid);
+  stream.writeString(m_template);
 }
 
 ClientMsg::MessageType ClientAddDrawableMsg::type() const {

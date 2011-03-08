@@ -3,9 +3,13 @@
 
 #include "core/serveriface.hpp"
 
+#include "core/util/socket.hpp"
+
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 #include <set>
+
+class ClientMsg;
 
 /// \brief A server running in a different process
 /// \ingroup Client
@@ -39,12 +43,19 @@ public:
   void run();
 
 private:
+  const char *m_srvname;
   ClientIface *m_client;
-  mutable boost::asio::ip::tcp::iostream m_stream;
+  mutable boost::asio::io_service m_service;
+  boost::asio::ip::tcp::socket m_socket;
+  AsioSocket<boost::asio::ip::tcp> m_wrapper;
 
   bool m_running;
   mutable boost::condition_variable m_status_cond;
   mutable boost::mutex m_status_mutex;
+
+  void writeMsg(ServerMsg*);
+  void readMsg(const boost::system::error_code&);
+  uint32_t m_next_msg_type;
 };
 
 #endif // QNT_CLIENT_REMOTESERVER_HPP

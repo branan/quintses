@@ -7,5 +7,5 @@ ServerMsg::MessageType ServerShutdownMsg::type() const {
   return ServerMsg::ShutdownMessage;
 }
 
-void ServerShutdownMsg::read(std::iostream&) {}
-void ServerShutdownMsg::write(std::iostream&) const {}
+void ServerShutdownMsg::read(SocketWrapper&) {}
+void ServerShutdownMsg::write(SocketWrapper&) const {}

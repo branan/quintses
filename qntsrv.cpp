@@ -22,8 +22,8 @@ class ListenServer {
 public:
   ListenServer(boost::asio::io_service &service, tcp::endpoint &endpoint, LocalServer *srv) 
     : m_service(service), m_acceptor(service, endpoint), m_server(srv) {
-    m_next_client = new RemoteClient(m_server);
-    m_acceptor.async_accept(*m_next_client->stream().rdbuf(), boost::bind(&ListenServer::handleAccept, this, boost::asio::placeholders::error));
+    m_next_client = new RemoteClient(m_server, service);
+    m_acceptor.async_accept(m_next_client->socket(), boost::bind(&ListenServer::handleAccept, this, boost::asio::placeholders::error));
   }
 
   ~ListenServer() {
@@ -33,8 +33,8 @@ public:
   void handleAccept(const boost::system::error_code &error) {
     if(!error) {
       m_next_client->spinup();
-      m_next_client = new RemoteClient(m_server);
-      m_acceptor.async_accept(*m_next_client->stream().rdbuf(), boost::bind(&ListenServer::handleAccept, this, boost::asio::placeholders::error));
+      m_next_client = new RemoteClient(m_server, m_service);
+      m_acceptor.async_accept(m_next_client->socket(), boost::bind(&ListenServer::handleAccept, this, boost::asio::placeholders::error));
     }
   }
 private:

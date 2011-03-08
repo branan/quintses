@@ -7,8 +7,8 @@ class ClientDelObjectMsg : public ClientMsg {
 public:
   ClientDelObjectMsg(uint32_t id) : m_objid(id) {}
   virtual ~ClientDelObjectMsg();
-  virtual void read(std::iostream&);
-  virtual void write(std::iostream&) const;
+  virtual void read(SocketWrapper&);
+  virtual void write(SocketWrapper&) const;
 
   uint32_t m_objid;
 };

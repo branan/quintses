@@ -1,15 +1,15 @@
 #include "inputmsg.hpp"
 
-#include <iostream>
+#include "core/util/socket.hpp"
 
 ServerInputMsg::~ServerInputMsg() {}
 
-void ServerInputMsg::read(std::iostream& stream) {
-  stream.read((char*)&m_state, 2);
+void ServerInputMsg::read(SocketWrapper& stream) {
+  stream.readPod(m_state);
 }
 
-void ServerInputMsg::write(std::iostream& stream) const {
-  stream.write((char*)&m_state, 2);
+void ServerInputMsg::write(SocketWrapper& stream) const {
+  stream.writePod(m_state);
 }
 
 ServerMsg::MessageType ServerInputMsg::type() const {

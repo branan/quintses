@@ -18,8 +18,8 @@ public:
   ServerInputMsg(ClientIface* cli) : ServerMsg(cli) {}
   virtual ~ServerInputMsg();
   virtual MessageType type() const;
-  virtual void read(std::iostream&);
-  virtual void write(std::iostream&) const;
+  virtual void read(SocketWrapper&);
+  virtual void write(SocketWrapper&) const;
 
   uint16_t m_state;
 };

@@ -15,14 +15,25 @@ namespace {
   };
 }
 
-RemoteServer::RemoteServer(const char* srv) {}
+RemoteServer::RemoteServer(const char* srv) : m_srvname(srv), m_client(0), m_socket(m_service), m_wrapper(m_socket) {
+  if(!srv)
+    m_srvname = "localhost";
+}
 
 RemoteServer::~RemoteServer() {}
 
 
 void RemoteServer::addClient(ClientIface* cli) {
   m_client = cli;
-  m_stream.connect("localhost", "55555");
+  boost::asio::ip::tcp::resolver resolver(m_service);
+  boost::asio::ip::tcp::resolver::query query(m_srvname, "55555");
+  boost::asio::ip::tcp::resolver::iterator iterator = resolver.resolve(query);
+  m_socket.connect(*iterator);
+  if(!m_socket.is_open()) {
+    std::cerr << "Failed to connect to " << m_srvname << std::endl;
+    return;
+  }
+  
   m_running = false;
   ServerLauncher launcher;
   boost::thread t(launcher, this);
@@ -30,6 +41,9 @@ void RemoteServer::addClient(ClientIface* cli) {
   while(!m_running) {
     m_status_cond.wait(lock);
   }
+  
+  boost::asio::async_read(m_socket, boost::asio::buffer((char*)&m_next_msg_type, 4),
+                          boost::bind(&RemoteServer::readMsg, this, boost::asio::placeholders::error));
 }
 
 void RemoteServer::removeClient(ClientIface* cli) {
@@ -44,15 +58,12 @@ bool RemoteServer::isLocal() const {
 }
 
 void RemoteServer::pushMessage(ServerMsg* msg) {
-  if(!m_running)
-    return;
-  uint32_t type = msg->type();
-  m_stream.write((char*)&type, 4);
-  msg->write(m_stream);
+  
+  m_service.post(boost::bind(&RemoteServer::writeMsg, this, msg));
 }
 
 int RemoteServer::waitForTermination() const {
-  m_stream.close();
+  m_service.stop();
   boost::mutex::scoped_lock lock(m_status_mutex);
   while(m_running) {
     m_status_cond.wait(lock);
@@ -66,25 +77,11 @@ void RemoteServer::run() {
     m_running = true;
   }
   m_status_cond.notify_all();
-  while(m_stream) {
-    uint32_t type;
-    m_stream.read((char*)&type, 4);
-    if(m_stream.good()) {
-      ClientMsg *msg = ClientMsg::create(type);
-      if(msg) {
-        msg->read(m_stream);
-        if(m_client)
-          m_client->pushMessage(msg);
-        else
-          delete msg;
-      } else {
-        std::cerr << "QntClient: received unknown message of type <" << type << ">\n";
-        std::cerr << "QntClient: closing stream due to unknown error.\n";
-        m_stream.close();
-      }
-    }
-  }
-  m_client->serverClosed();
+
+  m_service.run();
+  if(m_client)
+    m_client->serverClosed();
+
   {
     boost::mutex::scoped_lock lock(m_status_mutex);
     m_running = false;
@@ -92,3 +89,41 @@ void RemoteServer::run() {
   m_status_cond.notify_all();
 }
 
+void RemoteServer::writeMsg(ServerMsg *msg) {
+  try {
+    m_wrapper.writePod<uint32_t>(msg->type());
+    msg->write(m_wrapper);
+  } catch (...) {
+    std::cerr << "QntClient: Socket closed during message write. Closing stream.\n";
+    m_service.stop();
+  }
+  delete msg;
+}
+
+void RemoteServer::readMsg(const boost::system::error_code &error) {
+  if(error) {
+    std::cerr << "QntClient: Socket closed during message type read. Closing stream.\n";
+    m_service.stop();
+    return;
+  }
+  ClientMsg *msg = ClientMsg::create(m_next_msg_type);
+  if(msg) {
+    try {
+      msg->read(m_wrapper);
+      if(m_client)
+        m_client->pushMessage(msg);
+      else
+        delete msg;
+      boost::asio::async_read(m_socket, boost::asio::buffer((char*)&m_next_msg_type, 4),
+                              boost::bind(&RemoteServer::readMsg, this, boost::asio::placeholders::error));
+    } catch (...) {
+      std::cerr << "QntClient: Socket closed during message read. Closing stream.\n";
+      delete msg;
+      m_service.stop();
+    }
+  } else {
+    std::cerr << "QntClient: received unknown message of type <" << m_next_msg_type << ">\n";
+    std::cerr << "QntClient: closing stream due to unknown error.\n";
+    m_service.stop();
+  }
+}

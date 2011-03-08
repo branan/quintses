@@ -16,8 +16,8 @@ class ClientTransObjectMsg : public ClientMsg {
 public:
   ClientTransObjectMsg(const ClientTransObjectParams& p) : m_objid(p.m_objid) { if(p.m_transform) memcpy(m_transform, p.m_transform, 64); }
   virtual ~ClientTransObjectMsg();
-  virtual void read(std::iostream&);
-  virtual void write(std::iostream&) const;
+  virtual void read(SocketWrapper&);
+  virtual void write(SocketWrapper&) const;
 
   uint32_t m_objid;
   float m_transform[16];
