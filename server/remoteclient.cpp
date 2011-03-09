@@ -30,9 +30,15 @@ void RemoteClient::writeMsg(ClientMsg *msg) {
   try {
     m_wrapper.writePod<uint32_t>(msg->type());
     msg->write(m_wrapper);
-  } catch(...) {
+  } catch(boost::system::system_error& e) {
     if(!m_marked_for_delete) {
-      std::cerr << "Socket vomitted. shutting down\n";
+      switch(e.code().value()) {
+        case ENOENT:
+          std::cerr << "QntServer: client socket closed.\n";
+          break;
+        default:
+          std::cerr << "QntServer: got error reading from socket <" << strerror(e.code().value()) << ">\n";
+      }
       m_server->removeClient(this);
       m_marked_for_delete = true;
       m_service.post(boost::bind(&RemoteClient::deleteSelf, this));
@@ -42,13 +48,20 @@ void RemoteClient::writeMsg(ClientMsg *msg) {
   // we delete ourselves asynchronously to make sure we're in the clear.
 }
 
-void RemoteClient::readMsg(const boost::system::error_code& error) {
-  if(error && !m_marked_for_delete) {
+void RemoteClient::readMsg(const boost::system::error_code& err) {
+  if(m_marked_for_delete) {
+    return;
+  } else if(err) {
+    switch(err.value()) {
+      case ENOENT:
+        std::cerr << "QntServer: client socket closed.\n";
+        break;
+      default:
+        std::cerr << "QntServer: got error reading from socket <" << strerror(err.value()) << ">\n";
+    }
+    m_server->removeClient(this);
     m_marked_for_delete = true;
     m_service.post(boost::bind(&RemoteClient::deleteSelf, this));
-    return;
-  }
-  if(m_marked_for_delete) {
     return;
   }
   ServerMsg *msg = ServerMsg::create(m_next_msg_type, this);
@@ -60,7 +73,9 @@ void RemoteClient::readMsg(const boost::system::error_code& error) {
   } else {
     std::cerr << "QntServer: received unknown message of type <" << m_next_msg_type << ">\n";
     std::cerr << "QntServer: closing stream due to unknown error.\n";
-    m_socket.close();
+    m_server->removeClient(this);
+    m_marked_for_delete = true;
+    m_service.post(boost::bind(&RemoteClient::deleteSelf, this));
   }
 }
 

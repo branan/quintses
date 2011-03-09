@@ -93,34 +93,40 @@ void RemoteServer::writeMsg(ServerMsg *msg) {
   try {
     m_wrapper.writePod<uint32_t>(msg->type());
     msg->write(m_wrapper);
-  } catch (...) {
-    std::cerr << "QntClient: Socket closed during message write. Closing stream.\n";
+  } catch (boost::system::system_error& e) {
+    switch(e.code().value()) {
+      case ENOENT:
+        std::cerr << "QntClient: server socket closed.\n";
+        break;
+      default:
+        std::cerr << "QntClient: got error reading from socket <" << strerror(e.code().value()) << ">\n";
+    }
     m_service.stop();
   }
   delete msg;
 }
 
-void RemoteServer::readMsg(const boost::system::error_code &error) {
-  if(error) {
-    std::cerr << "QntClient: Socket closed during message type read. Closing stream.\n";
+void RemoteServer::readMsg(const boost::system::error_code &err) {
+  if(err) {
+    switch(err.value()) {
+      case ENOENT:
+        std::cerr << "QntClient: server socket closed.\n";
+        break;
+      default:
+        std::cerr << "QntClient: got error reading from socket <" << strerror(err.value()) << ">\n";
+    }
     m_service.stop();
     return;
   }
   ClientMsg *msg = ClientMsg::create(m_next_msg_type);
   if(msg) {
-    try {
-      msg->read(m_wrapper);
-      if(m_client)
-        m_client->pushMessage(msg);
-      else
-        delete msg;
-      boost::asio::async_read(m_socket, boost::asio::buffer((char*)&m_next_msg_type, 4),
-                              boost::bind(&RemoteServer::readMsg, this, boost::asio::placeholders::error));
-    } catch (...) {
-      std::cerr << "QntClient: Socket closed during message read. Closing stream.\n";
+    msg->read(m_wrapper);
+    if(m_client)
+      m_client->pushMessage(msg);
+    else
       delete msg;
-      m_service.stop();
-    }
+    boost::asio::async_read(m_socket, boost::asio::buffer((char*)&m_next_msg_type, 4),
+                            boost::bind(&RemoteServer::readMsg, this, boost::asio::placeholders::error));
   } else {
     std::cerr << "QntClient: received unknown message of type <" << m_next_msg_type << ">\n";
     std::cerr << "QntClient: closing stream due to unknown error.\n";

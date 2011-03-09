@@ -68,14 +68,18 @@ void LocalServer::run() {
     }
   }
 
-  for(auto i = m_clients.begin(); i != m_clients.end(); ++i) {
-    i->first->serverClosed();
-  }
-  for(auto i = m_lobby_clients.begin(); i != m_lobby_clients.end(); ++i) {
-    (*i)->serverClosed();
-  }
   m_physics->finish();
   delete m_physics;
+
+  {
+    boost::lock_guard<boost::shared_mutex> lock(m_clients_mutex);
+    for(auto i = m_clients.begin(); i != m_clients.end(); ++i) {
+      i->first->serverClosed();
+    }
+    for(auto i = m_lobby_clients.begin(); i != m_lobby_clients.end(); ++i) {
+      (*i)->serverClosed();
+    }
+  }
   {
     boost::mutex::scoped_lock lock(m_status_mutex);
     m_running = false;
@@ -136,7 +140,7 @@ int LocalServer::waitForTermination() const {
 }
 
 void LocalServer::pushClientTransforms(LocalServer::ClientTransList& trans) {
-  boost::lock_guard<boost::shared_mutex> lock(m_clients_mutex);
+  boost::shared_lock<boost::shared_mutex> lock(m_clients_mutex);
   for(auto i = trans.begin(); i != trans.end(); ++i) {
     ClientTransObjectParams tp;
     tp.m_transform = i->second;

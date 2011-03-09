@@ -23,7 +23,7 @@ class RemoteServer : public ServerIface {
 public:
   /// \brief Open a connection to a remote server
   /// \param host The hostname of the remote server
-  RemoteServer(const char* host);
+  RemoteServer(const char* host=0);
   virtual ~RemoteServer();
 
   // client management
